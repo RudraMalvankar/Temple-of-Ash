@@ -183,6 +183,23 @@ export class PushableCube {
     this.tryPush(dirX, dirY);
   }
 
+  burn(): void {
+    this.moving = true;
+    if (this.sprite.body) {
+      this.sprite.body.enable = false;
+    }
+    this.scene.tweens.add({
+      targets: this.sprite,
+      scaleX: 0,
+      scaleY: 0,
+      alpha: 0,
+      duration: 300,
+      onComplete: () => {
+        this.destroy();
+      }
+    });
+  }
+
   destroy(): void {
     this.moveTween?.stop();
     this.dust?.destroy();
