@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
+import { SpriteSheetNormalizer } from '../assets/SpriteSheetNormalizer';
 
 export class Preloader extends Scene {
   constructor() {
@@ -24,6 +25,7 @@ export class Preloader extends Scene {
 
   create() {
     AssetManager.createAnimations(this);
+    SpriteSheetNormalizer.normalize(this);
     this.scene.start('AssetValidation');
   }
 }

@@ -1,5 +1,6 @@
 export { AssetCategory, type AssetCategoryId } from './AssetCategory';
 export { AssetManager } from './AssetManager';
+export { SpriteSheetNormalizer } from './SpriteSheetNormalizer';
 export { LAYOUT_OVERRIDES, getOverrideByName, getOverridesByPath } from './layoutOverrides';
 export {
   analyzeSheetDimensions,
