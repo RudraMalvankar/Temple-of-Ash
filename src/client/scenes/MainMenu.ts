@@ -9,8 +9,8 @@ const MUTED = '#9ca3af';
 export class MainMenu extends Scene {
   private darkOverlay!: GameObjects.Rectangle;
   private titleContainer!: GameObjects.Container;
-  private menuContainer!: GameObjects.Container;
-  private modalContainer: GameObjects.Container | null = null;
+  private menuObjects: (GameObjects.Graphics | GameObjects.Text | GameObjects.Rectangle)[] = [];
+  private modalObjects: (GameObjects.Rectangle | GameObjects.Graphics | GameObjects.Text)[] = [];
   private decorations: GameObjects.GameObject[] = [];
   private playerPreview: GameObjects.Sprite | null = null;
 
@@ -31,10 +31,10 @@ export class MainMenu extends Scene {
     // 3. Decorations (Stone Door, Portal, Torch, Pillars)
     this.createDecorations();
 
-    // 4. Title Text & Player Preview (Restore the Ancient Flame)
+    // 4. Title Text & Player Preview
     this.createTitleAndPlayer();
 
-    // 5. Menu Buttons Panel
+    // 5. Menu Buttons Panel (Placed directly on Scene for absolute input safety)
     this.createMenuButtons();
 
     // 6. Footer Text
@@ -92,7 +92,6 @@ export class MainMenu extends Scene {
       lineSpacing: -10,
     }).setOrigin(0.5);
 
-    // Apply glow shadow
     titleText.setShadow(0, 0, ORANGE_GLOW, 20, true, true);
 
     const subtitleText = this.add.text(0, 45, 'Restore the Ancient Flame', {
@@ -117,7 +116,11 @@ export class MainMenu extends Scene {
   private createMenuButtons(): void {
     const { width, height } = this.scale;
 
-    this.menuContainer = this.add.container(width / 2, height * 0.58);
+    // Clean up old menu button objects
+    for (const obj of this.menuObjects) {
+      obj.destroy();
+    }
+    this.menuObjects = [];
 
     const options = [
       { text: '▶ Start Game', action: () => this.startGame() },
@@ -126,33 +129,36 @@ export class MainMenu extends Scene {
       { text: '🏆 Credits', action: () => this.showCredits() },
     ];
 
+    const startY = height * 0.52;
+    const btnX = width / 2;
+
     options.forEach((opt, idx) => {
-      const y = idx * 54;
+      const btnY = startY + idx * 58;
 
       // Button background stone block graphics
       const btnBg = this.add.graphics();
       btnBg.fillStyle(0x1c232d, 0.85);
       btnBg.lineStyle(2, 0x3a4553, 1);
-      btnBg.fillRoundedRect(-120, y - 20, 240, 40, 4);
-      btnBg.strokeRoundedRect(-120, y - 20, 240, 40, 4);
+      btnBg.fillRoundedRect(btnX - 120, btnY - 20, 240, 40, 4);
+      btnBg.strokeRoundedRect(btnX - 120, btnY - 20, 240, 40, 4);
 
-      const label = this.add.text(0, y, opt.text, {
+      const label = this.add.text(btnX, btnY, opt.text, {
         fontFamily: 'Arial',
         fontSize: '16px',
         color: WHITE,
         fontStyle: 'bold',
       }).setOrigin(0.5);
 
-      // Interactive hit area overlay
-      const hitArea = this.add.rectangle(0, y, 240, 40, 0xffffff, 0)
+      // Interactive hit area overlay (placed directly on scene for absolute coordinate tracking)
+      const hitArea = this.add.rectangle(btnX, btnY, 240, 40, 0xffffff, 0)
         .setInteractive({ useHandCursor: true });
 
       // Hover effects
       hitArea.on('pointerover', () => {
         this.tweens.add({
-          targets: [btnBg, label],
-          scaleX: 1.05,
-          scaleY: 1.05,
+          targets: [label],
+          scaleX: 1.08,
+          scaleY: 1.08,
           duration: 100,
         });
         label.setColor(ORANGE_GLOW);
@@ -160,7 +166,7 @@ export class MainMenu extends Scene {
 
       hitArea.on('pointerout', () => {
         this.tweens.add({
-          targets: [btnBg, label],
+          targets: [label],
           scaleX: 1.0,
           scaleY: 1.0,
           duration: 100,
@@ -171,7 +177,7 @@ export class MainMenu extends Scene {
       // Press effects
       hitArea.on('pointerdown', () => {
         this.tweens.add({
-          targets: [btnBg, label],
+          targets: [label],
           scaleX: 0.95,
           scaleY: 0.95,
           yoyo: true,
@@ -180,7 +186,7 @@ export class MainMenu extends Scene {
         });
       });
 
-      this.menuContainer.add([btnBg, label, hitArea]);
+      this.menuObjects.push(btnBg, label, hitArea);
     });
   }
 
@@ -241,88 +247,70 @@ export class MainMenu extends Scene {
   }
 
   private showModal(title: string, lines: string[]): void {
-    if (this.modalContainer) {
-      this.modalContainer.destroy();
-    }
+    this.closeModal();
 
     const { width, height } = this.scale;
-    this.modalContainer = this.add.container(width / 2, height / 2).setDepth(2000);
 
     // Modal background overlay blocking other buttons
-    const backdrop = this.add.rectangle(0, 0, width, height, 0x000000, 0.65)
-      .setInteractive();
+    const backdrop = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.65)
+      .setInteractive()
+      .setDepth(2000);
     
     // Stone panel card
-    const cardBg = this.add.graphics();
+    const cardBg = this.add.graphics().setDepth(2001);
     cardBg.fillStyle(0x11161d, 0.95);
     cardBg.lineStyle(3, 0xff7700, 1);
-    cardBg.fillRoundedRect(-220, -160, 440, 320, 6);
-    cardBg.strokeRoundedRect(-220, -160, 440, 320, 6);
+    cardBg.fillRoundedRect(width / 2 - 220, height / 2 - 160, 440, 320, 6);
+    cardBg.strokeRoundedRect(width / 2 - 220, height / 2 - 160, 440, 320, 6);
 
-    const titleText = this.add.text(0, -120, title, {
+    const titleText = this.add.text(width / 2, height / 2 - 120, title, {
       fontFamily: 'Georgia, serif',
       fontSize: '20px',
       color: ORANGE,
       fontStyle: 'bold',
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(2002);
 
-    const bodyText = this.add.text(0, -70, lines.join('\n\n'), {
+    const bodyText = this.add.text(width / 2, height / 2 - 70, lines.join('\n\n'), {
       fontFamily: 'Arial',
       fontSize: '13px',
       color: WHITE,
       align: 'center',
       wordWrap: { width: 380 },
-    }).setOrigin(0.5, 0);
+    }).setOrigin(0.5, 0).setDepth(2002);
 
     // Close button rectangular block
-    const closeBtnBg = this.add.graphics();
+    const closeBtnBg = this.add.graphics().setDepth(2001);
     closeBtnBg.fillStyle(0x1c232d, 1);
     closeBtnBg.lineStyle(1, 0x3a4553, 1);
-    closeBtnBg.fillRoundedRect(-50, 100, 100, 32, 4);
-    closeBtnBg.strokeRoundedRect(-50, 100, 100, 32, 4);
+    closeBtnBg.fillRoundedRect(width / 2 - 50, height / 2 + 100, 100, 32, 4);
+    closeBtnBg.strokeRoundedRect(width / 2 - 50, height / 2 + 100, 100, 32, 4);
 
-    const closeBtnLabel = this.add.text(0, 116, 'CLOSE', {
+    const closeBtnLabel = this.add.text(width / 2, height / 2 + 116, 'CLOSE', {
       fontFamily: 'Arial',
       fontSize: '13px',
       color: WHITE,
       fontStyle: 'bold',
-    }).setOrigin(0.5);
+    }).setOrigin(0.5).setDepth(2002);
 
-    const closeHit = this.add.rectangle(0, 116, 100, 32, 0xffffff, 0)
-      .setInteractive({ useHandCursor: true });
+    const closeHit = this.add.rectangle(width / 2, height / 2 + 116, 100, 32, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(2003);
 
-    const closeModal = () => {
-      this.tweens.add({
-        targets: this.modalContainer,
-        alpha: 0,
-        scaleX: 0.9,
-        scaleY: 0.9,
-        duration: 150,
-        onComplete: () => {
-          this.modalContainer?.destroy();
-          this.modalContainer = null;
-        },
-      });
-    };
-
-    closeHit.on('pointerdown', closeModal);
-    backdrop.on('pointerdown', closeModal);
+    closeHit.on('pointerdown', () => this.closeModal());
+    backdrop.on('pointerdown', () => this.closeModal());
 
     // Escape key closes modal
     const escKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
-    escKey?.once('down', closeModal);
+    escKey?.once('down', () => this.closeModal());
 
-    this.modalContainer.add([backdrop, cardBg, titleText, bodyText, closeBtnBg, closeBtnLabel, closeHit]);
-    
-    // Pop-in tween animation
-    this.modalContainer.setScale(0.9).setAlpha(0);
-    this.tweens.add({
-      targets: this.modalContainer,
-      alpha: 1,
-      scaleX: 1,
-      scaleY: 1,
-      duration: 200,
-    });
+    this.modalObjects.push(backdrop, cardBg, titleText, bodyText, closeBtnBg, closeBtnLabel, closeHit);
+  }
+
+  private closeModal(): void {
+    for (const obj of this.modalObjects) {
+      obj.destroy();
+    }
+    this.modalObjects = [];
   }
 
   private handleResize = (): void => {
@@ -331,11 +319,8 @@ export class MainMenu extends Scene {
     this.darkOverlay.setPosition(width / 2, height / 2).setSize(width, height);
     
     this.createDecorations();
-    
-    this.titleContainer.setPosition(width / 2, height * 0.24);
-    if (this.playerPreview) {
-      this.playerPreview.setPosition(width / 2 - 200, height * 0.22);
-    }
-    this.menuContainer.setPosition(width / 2, height * 0.58);
+    this.createTitleAndPlayer();
+    this.createMenuButtons();
+    this.closeModal();
   };
 }
