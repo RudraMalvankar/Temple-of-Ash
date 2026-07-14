@@ -27,13 +27,14 @@ type StaticAssetDef = {
 };
 
 type AnimAssetDef = {
-  key: string; // Animation key
+  key: string;
   category: AssetCategory;
-  prefix: string; // Prefix of file names
+  prefix: string;
   subDir: string;
   frames: number;
   fps: number;
   repeat: number;
+  customFrames?: number[]; // Explicit frame numbers to load if non-contiguous
 };
 
 // ---------------------------------------------------------
@@ -42,9 +43,7 @@ type AnimAssetDef = {
 const STATIC_ASSETS: StaticAssetDef[] = [
   // Backgrounds
   { key: 'bg_main', path: 'backgrounds/bg.png', category: 'BACKGROUND' },
-  { key: 'parallax_bg_foreground', path: 'backgrounds/parallax_bg_foreground.png', category: 'BACKGROUND' },
-  { key: 'parallax_bg_mountains', path: 'backgrounds/parallax_bg_mountains.png', category: 'BACKGROUND' },
-  { key: 'parallax_bg_sky', path: 'backgrounds/parallax_bg_sky.png', category: 'BACKGROUND' },
+  { key: 'parallax_backgrounds', path: 'backgrounds/parallax_backgrounds.png', category: 'BACKGROUND' },
 
   // Characters
   { key: 'player_cube', path: 'characters/player_cube.png', category: 'CHARACTERS' },
@@ -90,33 +89,34 @@ const STATIC_ASSETS: StaticAssetDef[] = [
   { key: 'button_hover_01', path: 'ui/button_hover_01.png', category: 'UI' },
   { key: 'button_pressed_01', path: 'ui/button_pressed_01.png', category: 'UI' },
   { key: 'button_disabled_01', path: 'ui/button_disabled_01.png', category: 'UI' },
-  ...['blue', 'yellow', 'red', 'green'].flatMap((color) =>
+  
+  // Blue, Yellow, Red rectangular button states
+  ...['blue', 'yellow', 'red'].flatMap((color) =>
     ['idle', 'hover', 'pressed', 'disabled', 'state'].map((state) => ({
       key: `button_rectangular_${color}_${state}`,
       path: `ui/button_rectangular_${color}_${state}.png`,
       category: 'UI' as AssetCategory,
     }))
   ),
+  // Green rectangular state only
+  { key: 'button_rectangular_green_state', path: 'ui/button_rectangular_green_state.png', category: 'UI' },
 
-  // UI Icon elements
+  // UI Icon elements (verified exists on disk)
   ...[
-    'play', 'pause', 'restart', 'close', 'check', 'arrow_left', 'arrow_right',
-    'sound_on', 'sound_off', 'music_on', 'music_off', 'star', 'lock', 'unlock',
-    'home', 'menu', 'settings', 'info', 'help', 'trophy', 'leaderboard'
+    'arrow_left', 'arrow_right', 'check', 'help', 'home', 'info', 'leaderboard',
+    'lock', 'menu', 'music_off', 'music_on', 'settings', 'sound_off', 'sound_on',
+    'star', 'trophy', 'unlock'
   ].map((name) => ({
     key: `icon_${name}`,
     path: `ui/icon_${name}.png`,
     category: 'UI' as AssetCategory,
   })),
 
-  // UI Logo
-  { key: 'logo_title', path: 'ui/logo_title.png', category: 'UI' },
+  // UI Logo (verified file logo.png exists)
+  { key: 'logo_title', path: 'ui/logo.png', category: 'UI' },
 
-  // Effects static overlays
-  { key: 'effect_ambient_glow', path: 'effects/effect_ambient_glow.png', category: 'UI' },
-  { key: 'effect_vignette', path: 'effects/effect_vignette.png', category: 'UI' },
-  { key: 'effect_lens_flare', path: 'effects/effect_lens_flare.png', category: 'UI' },
-  { key: 'effect_particles_dust', path: 'effects/effect_particles_dust.png', category: 'UI' },
+  // Effects static overlays (verified file effects_overlays.png exists)
+  { key: 'effects_overlays', path: 'effects/effects_overlays.png', category: 'UI' },
 ];
 
 // ---------------------------------------------------------
@@ -124,60 +124,57 @@ const STATIC_ASSETS: StaticAssetDef[] = [
 // ---------------------------------------------------------
 const ANIM_ASSETS: AnimAssetDef[] = [
   // Player Animations
-  { key: 'cube_idle', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, fps: 6, repeat: -1 },
-  { key: 'cube_move', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, fps: 10, repeat: -1 },
-  { key: 'cube_jump', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, fps: 10, repeat: 0 },
-  { key: 'cube_charged', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, fps: 8, repeat: -1 },
-  { key: 'cube_damage', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, fps: 8, repeat: 0 },
-  { key: 'cube_destroy', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 4, fps: 8, repeat: 0 },
+  { key: 'cube_idle', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, customFrames: [1, 2, 3, 4, 5], fps: 6, repeat: -1 },
+  { key: 'cube_move', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, customFrames: [6, 7, 8, 9, 10], fps: 10, repeat: -1 },
+  { key: 'cube_jump', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, customFrames: [11, 12, 13, 14, 15], fps: 10, repeat: 0 },
+  { key: 'cube_charged', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, customFrames: [16, 17, 18, 19, 20], fps: 8, repeat: -1 },
+  { key: 'cube_damage', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 5, customFrames: [21, 22, 23, 24, 25], fps: 8, repeat: 0 },
+  { key: 'cube_destroy', category: 'CHARACTERS', prefix: 'cube_frame_', subDir: 'characters', frames: 4, customFrames: [26, 27, 28, 29], fps: 8, repeat: 0 },
 
   // Doors
-  { key: 'door_closed', category: 'DOORS', prefix: 'door_closed_', subDir: 'doors', frames: 5, fps: 6, repeat: -1 },
-  { key: 'door_opening', category: 'DOORS', prefix: 'door_opening_', subDir: 'doors', frames: 5, fps: 10, repeat: 0 },
-  { key: 'door_open', category: 'DOORS', prefix: 'door_open_', subDir: 'doors', frames: 5, fps: 6, repeat: -1 },
+  { key: 'door_closed', category: 'DOORS', prefix: 'door_closed_', subDir: 'doors', frames: 5, customFrames: [1, 2, 3, 4, 5], fps: 6, repeat: -1 },
+  { key: 'door_opening', category: 'DOORS', prefix: 'door_opening_', subDir: 'doors', frames: 5, customFrames: [1, 2, 3, 4, 5], fps: 10, repeat: 0 },
+  { key: 'door_open', category: 'DOORS', prefix: 'door_open_', subDir: 'doors', frames: 5, customFrames: [1, 2, 3, 4, 5], fps: 6, repeat: -1 },
 
   // Portals
-  { key: 'portal_idle', category: 'PORTALS', prefix: 'portal_idle_', subDir: 'portals', frames: 2, fps: 4, repeat: -1 },
-  { key: 'portal_activate', category: 'PORTALS', prefix: 'portal_activate_', subDir: 'portals', frames: 2, fps: 8, repeat: 0 },
+  { key: 'portal_idle', category: 'PORTALS', prefix: 'portal_idle_', subDir: 'portals', frames: 2, customFrames: [1, 2], fps: 4, repeat: -1 },
+  { key: 'portal_activate', category: 'PORTALS', prefix: 'portal_activate_', subDir: 'portals', frames: 2, customFrames: [1, 2], fps: 8, repeat: 0 },
 
-  // Checkpoints
-  { key: 'checkpoint_inactive', category: 'CHECKPOINTS', prefix: 'checkpoint_inactive_', subDir: 'interactive/Check Point', frames: 3, fps: 6, repeat: -1 },
-  { key: 'checkpoint_active', category: 'CHECKPOINTS', prefix: 'checkpoint_active_', subDir: 'interactive/Check Point', frames: 3, fps: 8, repeat: -1 },
+  // Checkpoints (inactive prefix checkpoint_idle_, active prefix checkpoint_activated_)
+  { key: 'checkpoint_inactive', category: 'CHECKPOINTS', prefix: 'checkpoint_idle_', subDir: 'interactive/Check Point', frames: 3, customFrames: [1, 2, 3], fps: 6, repeat: -1 },
+  { key: 'checkpoint_active', category: 'CHECKPOINTS', prefix: 'checkpoint_activated_', subDir: 'interactive/Check Point', frames: 3, customFrames: [1, 2, 3], fps: 8, repeat: -1 },
 
   // Particles
-  { key: 'particle_ember', category: 'PARTICLES', prefix: 'ember_', subDir: 'interactive/Check Point', frames: 6, fps: 10, repeat: -1 },
-  { key: 'particle_spark', category: 'PARTICLES', prefix: 'spark_', subDir: 'interactive/Check Point', frames: 6, fps: 12, repeat: -1 },
-  { key: 'particle_dust', category: 'PARTICLES', prefix: 'dust_', subDir: 'interactive/Check Point', frames: 6, fps: 8, repeat: -1 },
-  { key: 'particle_smoke', category: 'PARTICLES', prefix: 'smoke_', subDir: 'interactive/Check Point', frames: 6, fps: 8, repeat: -1 },
-  { key: 'particle_sparkle', category: 'PARTICLES', prefix: 'sparkle_', subDir: 'interactive/Check Point', frames: 6, fps: 12, repeat: -1 },
+  { key: 'particle_ember', category: 'PARTICLES', prefix: 'checkpoint_frame_', subDir: 'interactive/Check Point', frames: 6, customFrames: [7, 8, 9, 10, 11, 12], fps: 10, repeat: -1 },
+  { key: 'particle_spark', category: 'PARTICLES', prefix: 'checkpoint_frame_', subDir: 'interactive/Check Point', frames: 6, customFrames: [13, 14, 15, 16, 17, 18], fps: 12, repeat: -1 },
+  { key: 'particle_dust', category: 'PARTICLES', prefix: 'checkpoint_frame_', subDir: 'interactive/Check Point', frames: 6, customFrames: [19, 20, 21, 22, 23, 24], fps: 8, repeat: -1 },
+  { key: 'particle_smoke', category: 'PARTICLES', prefix: 'checkpoint_frame_', subDir: 'interactive/Check Point', frames: 4, customFrames: [25, 26, 27, 28], fps: 8, repeat: -1 },
+  { key: 'particle_sparkle', category: 'PARTICLES', prefix: 'checkpoint_frame_', subDir: 'interactive/Check Point', frames: 8, customFrames: [32, 33, 34, 35, 36, 37, 38, 39], fps: 12, repeat: -1 },
 
   // Bridges
-  { key: 'bridge_lowered', category: 'BRIDGES', prefix: 'bridge_lowered_', subDir: 'interactive/Energy Beam', frames: 3, fps: 6, repeat: -1 },
-  { key: 'bridge_raising', category: 'BRIDGES', prefix: 'bridge_raising_', subDir: 'interactive/Energy Beam', frames: 3, fps: 10, repeat: 0 },
-  { key: 'bridge_raised', category: 'BRIDGES', prefix: 'bridge_raised_', subDir: 'interactive/Energy Beam', frames: 3, fps: 6, repeat: -1 },
+  { key: 'bridge_lowered', category: 'BRIDGES', prefix: 'bridge_lowered_', subDir: 'interactive/Energy Beam', frames: 3, customFrames: [1, 2, 3], fps: 6, repeat: -1 },
+  { key: 'bridge_raising', category: 'BRIDGES', prefix: 'bridge_raising_', subDir: 'interactive/Energy Beam', frames: 3, customFrames: [1, 2, 3], fps: 10, repeat: 0 },
+  { key: 'bridge_raised', category: 'BRIDGES', prefix: 'bridge_raised_', subDir: 'interactive/Energy Beam', frames: 3, customFrames: [1, 2, 3], fps: 6, repeat: -1 },
 
   // Lasers
-  { key: 'laser_horizontal', category: 'LASERS', prefix: 'laser_h_', subDir: 'interactive/Energy Beam', frames: 4, fps: 8, repeat: -1 },
-  { key: 'laser_vertical', category: 'LASERS', prefix: 'laser_v_', subDir: 'interactive/Energy Beam', frames: 5, fps: 8, repeat: -1 },
+  { key: 'laser_horizontal', category: 'LASERS', prefix: 'bridge_frame_', subDir: 'interactive/Energy Beam', frames: 4, customFrames: [10, 11, 12, 13], fps: 8, repeat: -1 },
+  { key: 'laser_vertical', category: 'LASERS', prefix: 'bridge_frame_', subDir: 'interactive/Energy Beam', frames: 5, customFrames: [14, 15, 16, 17, 18], fps: 8, repeat: -1 },
 
   // Torches
-  { key: 'torch_idle', category: 'TORCHES', prefix: 'torch_idle_', subDir: 'interactive/Pillar', frames: 5, fps: 8, repeat: -1 },
-  { key: 'torch_extinguish', category: 'TORCHES', prefix: 'torch_extinguish_', subDir: 'interactive/Pillar', frames: 5, fps: 8, repeat: 0 },
+  { key: 'torch_idle', category: 'TORCHES', prefix: 'checkpoint_frame_', subDir: 'interactive/Check Point', frames: 3, customFrames: [29, 30, 31], fps: 8, repeat: -1 },
+  { key: 'torch_extinguish', category: 'TORCHES', prefix: 'pressure_plate_frame_', subDir: 'interactive/Pressure Plate', frames: 3, customFrames: [18, 19, 20], fps: 8, repeat: 0 },
 
   // Pressure Plates
-  { key: 'pressure_plate_idle', category: 'PRESSURE_PLATES', prefix: 'pressure_plate_idle_', subDir: 'interactive/Pressure Plate', frames: 4, fps: 6, repeat: -1 },
-  { key: 'pressure_plate_pressed', category: 'PRESSURE_PLATES', prefix: 'pressure_plate_pressed_', subDir: 'interactive/Pressure Plate', frames: 3, fps: 10, repeat: 0 },
-  { key: 'pressure_plate_activated', category: 'PRESSURE_PLATES', prefix: 'pressure_plate_activated_', subDir: 'interactive/Pressure Plate', frames: 3, fps: 8, repeat: -1 },
+  { key: 'pressure_plate_idle', category: 'PRESSURE_PLATES', prefix: 'pressure_plate_idle_', subDir: 'interactive/Pressure Plate', frames: 4, customFrames: [1, 2, 3, 4], fps: 6, repeat: -1 },
+  { key: 'pressure_plate_pressed', category: 'PRESSURE_PLATES', prefix: 'pressure_plate_pressed_', subDir: 'interactive/Pressure Plate', frames: 3, customFrames: [1, 2, 3], fps: 10, repeat: 0 },
+  { key: 'pressure_plate_activated', category: 'PRESSURE_PLATES', prefix: 'pressure_plate_activated_', subDir: 'interactive/Pressure Plate', frames: 3, customFrames: [1, 2, 3], fps: 8, repeat: -1 },
 
-  // Crystals
-  { key: 'crystal_idle', category: 'CRYSTALS', prefix: 'crystal_idle_', subDir: 'interactive/Pressure Plate', frames: 5, fps: 6, repeat: -1 },
-  { key: 'crystal_active', category: 'CRYSTALS', prefix: 'crystal_active_', subDir: 'interactive/Pressure Plate', frames: 5, fps: 8, repeat: -1 },
+  // Crystals (skipping missing frames 9, 10, 11)
+  { key: 'crystal_idle', category: 'CRYSTALS', prefix: 'pressure_plate_frame_', subDir: 'interactive/Pressure Plate', frames: 2, customFrames: [8, 12], fps: 6, repeat: -1 },
+  { key: 'crystal_active', category: 'CRYSTALS', prefix: 'pressure_plate_frame_', subDir: 'interactive/Pressure Plate', frames: 5, customFrames: [13, 14, 15, 16, 17], fps: 8, repeat: -1 },
 
-  // Lava
-  { key: 'lava_flow_a', category: 'LAVA', prefix: 'lava_flow_a_', subDir: 'tiles', frames: 6, fps: 6, repeat: -1 },
-  { key: 'lava_flow_b', category: 'LAVA', prefix: 'lava_flow_b_', subDir: 'tiles', frames: 6, fps: 6, repeat: -1 },
-  { key: 'lava_fringe_a', category: 'LAVA', prefix: 'lava_fringe_a_', subDir: 'tiles', frames: 6, fps: 6, repeat: -1 },
-  { key: 'lava_fringe_b', category: 'LAVA', prefix: 'lava_fringe_b_', subDir: 'tiles', frames: 6, fps: 6, repeat: -1 },
+  // Lava (only flow a exists on disk with 2 frames)
+  { key: 'lava_flow_a', category: 'LAVA', prefix: 'lava_flow_a_', subDir: 'tiles', frames: 2, customFrames: [1, 2], fps: 6, repeat: -1 },
 ];
 
 export class AssetManager {
@@ -196,16 +193,9 @@ export class AssetManager {
 
     // Load animation sequence assets
     for (const anim of ANIM_ASSETS) {
-      let startIndex = 1;
-      if (anim.key === 'cube_move') startIndex = 6;
-      else if (anim.key === 'cube_jump') startIndex = 11;
-      else if (anim.key === 'cube_charged') startIndex = 16;
-      else if (anim.key === 'cube_damage') startIndex = 21;
-      else if (anim.key === 'cube_destroy') startIndex = 26;
-
-      for (let i = 0; i < anim.frames; i++) {
-        const frameIndex = startIndex + i;
-        const frameName = `${anim.prefix}${String(frameIndex).padStart(2, '0')}`;
+      const frameNums = anim.customFrames || Array.from({ length: anim.frames }, (_, i) => i + 1);
+      for (const f of frameNums) {
+        const frameName = `${anim.prefix}${String(f).padStart(2, '0')}`;
         const path = `${anim.subDir}/${frameName}.png`;
         if (!scene.textures.exists(frameName)) {
           scene.load.image(frameName, `${ASSET_BASE}/${path}`);
@@ -222,17 +212,10 @@ export class AssetManager {
         continue;
       }
 
-      let startIndex = 1;
-      if (anim.key === 'cube_move') startIndex = 6;
-      else if (anim.key === 'cube_jump') startIndex = 11;
-      else if (anim.key === 'cube_charged') startIndex = 16;
-      else if (anim.key === 'cube_damage') startIndex = 21;
-      else if (anim.key === 'cube_destroy') startIndex = 26;
-
       const frames: Array<{ key: string }> = [];
-      for (let i = 0; i < anim.frames; i++) {
-        const frameIndex = startIndex + i;
-        const frameName = `${anim.prefix}${String(frameIndex).padStart(2, '0')}`;
+      const frameNums = anim.customFrames || Array.from({ length: anim.frames }, (_, i) => i + 1);
+      for (const f of frameNums) {
+        const frameName = `${anim.prefix}${String(f).padStart(2, '0')}`;
         frames.push({ key: frameName });
       }
 
@@ -255,6 +238,10 @@ export class AssetManager {
     return ANIM_ASSETS;
   }
 
+  static getDescriptiveName(sheetName: string, frameIndex: number, _anims: any[]): string {
+    return `${sheetName}_frame_${String(frameIndex).padStart(2, '0')}`;
+  }
+
   static getSheet(name: string) {
     if (name === 'cube') {
       return { textureKey: 'cube_frame_01' };
@@ -262,7 +249,10 @@ export class AssetManager {
     const s = STATIC_ASSETS.find(a => a.key === name);
     if (s) return { textureKey: s.key };
     const a = ANIM_ASSETS.find(am => am.key === name);
-    if (a) return { textureKey: a.prefix + '01' };
+    if (a) {
+      const firstFrame = a.customFrames ? a.customFrames[0] : 1;
+      return { textureKey: a.prefix + String(firstFrame).padStart(2, '0') };
+    }
     return { textureKey: name };
   }
 
@@ -389,13 +379,13 @@ export class AssetManager {
   }
 
   static spawnCrystal(scene: Scene, x: number, y: number): GameObjects.Sprite {
-    const sprite = scene.add.sprite(x, y, 'crystal_idle_01');
+    const sprite = scene.add.sprite(x, y, 'pressure_plate_frame_08');
     AssetManager.playAnimation(sprite, 'crystal_idle');
     return sprite;
   }
 
   static spawnTorch(scene: Scene, x: number, y: number): GameObjects.Sprite {
-    const sprite = scene.add.sprite(x, y, 'torch_idle_01');
+    const sprite = scene.add.sprite(x, y, 'checkpoint_frame_29');
     AssetManager.playAnimation(sprite, 'torch_idle');
     return sprite;
   }
@@ -407,7 +397,7 @@ export class AssetManager {
   }
 
   static spawnLaser(scene: Scene, x: number, y: number, orientation: 'horizontal' | 'vertical'): GameObjects.Sprite {
-    const frame = orientation === 'horizontal' ? 'laser_h_01' : 'laser_v_01';
+    const frame = orientation === 'horizontal' ? 'bridge_frame_10' : 'bridge_frame_14';
     const anim = orientation === 'horizontal' ? 'laser_horizontal' : 'laser_vertical';
     const sprite = scene.add.sprite(x, y, frame);
     AssetManager.playAnimation(sprite, anim);
@@ -458,27 +448,19 @@ export class AssetManager {
     return scene.add.sprite(x, y, `dungeon_structure_${idx}`);
   }
 
-  static spawnLava(scene: Scene, x: number, y: number, type: 'a' | 'b' | 'fringe_a' | 'fringe_b' = 'a'): GameObjects.Sprite {
-    const frame = type === 'a'
-      ? 'lava_flow_a_01'
-      : type === 'b'
-      ? 'lava_flow_b_01'
-      : type === 'fringe_a'
-      ? 'lava_fringe_a_01'
-      : 'lava_fringe_b_01';
-
-    const sprite = scene.add.sprite(x, y, frame);
-    AssetManager.playAnimation(sprite, type === 'a' ? 'lava_flow_a' : type === 'b' ? 'lava_flow_b' : type === 'fringe_a' ? 'lava_fringe_a' : 'lava_fringe_b');
+  static spawnLava(scene: Scene, x: number, y: number, _type: 'a' | 'b' | 'fringe_a' | 'fringe_b' = 'a'): GameObjects.Sprite {
+    const sprite = scene.add.sprite(x, y, 'lava_flow_a_01');
+    AssetManager.playAnimation(sprite, 'lava_flow_a');
     return sprite;
   }
 
   static spawnParticle(scene: Scene, x: number, y: number, type: 'ember' | 'spark' | 'dust' | 'smoke' | 'sparkle'): GameObjects.Sprite {
     const frameMap = {
-      ember: 'ember_01',
-      spark: 'spark_01',
-      dust: 'dust_01',
-      smoke: 'smoke_01',
-      sparkle: 'sparkle_01',
+      ember: 'checkpoint_frame_07',
+      spark: 'checkpoint_frame_13',
+      dust: 'checkpoint_frame_19',
+      smoke: 'checkpoint_frame_25',
+      sparkle: 'checkpoint_frame_32',
     };
     const sprite = scene.add.sprite(x, y, frameMap[type]);
     AssetManager.playAnimation(sprite, `particle_${type}`);
