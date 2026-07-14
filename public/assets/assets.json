@@ -1,0 +1,1562 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-14T10:57:44.332Z",
+  "basePath": "assets",
+  "sheets": [
+    {
+      "name": "cube",
+      "path": "characters/player_cube.png",
+      "category": "cube",
+      "textureKey": "cube",
+      "loadMode": "grid",
+      "frameWidth": 248,
+      "frameHeight": 148,
+      "columns": 5,
+      "rows": 6,
+      "frames": 30,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 220,
+        "top": 56,
+        "right": 76,
+        "bottom": 80
+      },
+      "spacing": {
+        "x": 16,
+        "y": 12
+      },
+      "notes": "Labeled concept sheet — left rail excluded via margin.",
+      "animations": [
+        {
+          "name": "cube_idle",
+          "start": 0,
+          "end": 4,
+          "fps": 6,
+          "repeat": -1
+        },
+        {
+          "name": "cube_move",
+          "start": 5,
+          "end": 9,
+          "fps": 10,
+          "repeat": -1
+        },
+        {
+          "name": "cube_jump",
+          "start": 10,
+          "end": 14,
+          "fps": 10,
+          "repeat": 0
+        },
+        {
+          "name": "cube_charged",
+          "start": 15,
+          "end": 19,
+          "fps": 8,
+          "repeat": -1
+        },
+        {
+          "name": "cube_damage",
+          "start": 20,
+          "end": 24,
+          "fps": 8,
+          "repeat": 0
+        },
+        {
+          "name": "cube_destroy",
+          "start": 25,
+          "end": 29,
+          "fps": 8,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "name": "door",
+      "path": "doors/doors.png",
+      "category": "door",
+      "textureKey": "door",
+      "loadMode": "grid",
+      "frameWidth": 280,
+      "frameHeight": 300,
+      "columns": 5,
+      "rows": 3,
+      "frames": 15,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 48,
+        "top": 40,
+        "right": 48,
+        "bottom": 44
+      },
+      "spacing": {
+        "x": 12,
+        "y": 16
+      },
+      "animations": [
+        {
+          "name": "door_closed",
+          "start": 0,
+          "end": 4,
+          "fps": 6,
+          "repeat": -1
+        },
+        {
+          "name": "door_opening",
+          "start": 5,
+          "end": 9,
+          "fps": 10,
+          "repeat": 0
+        },
+        {
+          "name": "door_open",
+          "start": 10,
+          "end": 14,
+          "fps": 6,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "portal",
+      "path": "portals/exit_portal.png",
+      "category": "portal",
+      "textureKey": "portal",
+      "loadMode": "grid",
+      "frameWidth": 640,
+      "frameHeight": 420,
+      "columns": 2,
+      "rows": 2,
+      "frames": 4,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 96,
+        "top": 72,
+        "right": 96,
+        "bottom": 72
+      },
+      "spacing": {
+        "x": 48,
+        "y": 40
+      },
+      "animations": [
+        {
+          "name": "portal_idle",
+          "start": 0,
+          "end": 1,
+          "fps": 4,
+          "repeat": -1
+        },
+        {
+          "name": "portal_activate",
+          "start": 2,
+          "end": 3,
+          "fps": 8,
+          "repeat": 0
+        },
+        {
+          "name": "portal_loop",
+          "start": 2,
+          "end": 3,
+          "fps": 10,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "torch",
+      "path": "interactive/torch_pillars.png",
+      "category": "torch",
+      "textureKey": "torch_pillars",
+      "loadMode": "grid",
+      "frameWidth": 120,
+      "frameHeight": 160,
+      "columns": 5,
+      "rows": 2,
+      "frames": 10,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 40,
+        "top": 80,
+        "right": 780,
+        "bottom": 520
+      },
+      "spacing": {
+        "x": 16,
+        "y": 24
+      },
+      "notes": "Shares texture with pillars — torch region only.",
+      "animations": [
+        {
+          "name": "torch_idle",
+          "start": 0,
+          "end": 4,
+          "fps": 8,
+          "repeat": -1
+        },
+        {
+          "name": "torch_extinguish",
+          "start": 5,
+          "end": 9,
+          "fps": 8,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "name": "pillar",
+      "path": "interactive/torch_pillars.png",
+      "category": "pillar",
+      "textureKey": "torch_pillars",
+      "loadMode": "grid",
+      "frameWidth": 140,
+      "frameHeight": 360,
+      "columns": 6,
+      "rows": 1,
+      "frames": 6,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 620,
+        "top": 280,
+        "right": 40,
+        "bottom": 80
+      },
+      "spacing": {
+        "x": 12,
+        "y": 0
+      },
+      "notes": "Shares texture with torch — pillar variants as static frames.",
+      "animations": [
+        {
+          "name": "pillar_idle",
+          "start": 0,
+          "end": 0,
+          "fps": 1,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "name": "pressure_plate",
+      "path": "interactive/pressure_plate_crystal.png",
+      "category": "pressure_plate",
+      "textureKey": "pressure_plate_crystal",
+      "loadMode": "grid",
+      "frameWidth": 160,
+      "frameHeight": 140,
+      "columns": 4,
+      "rows": 3,
+      "frames": 12,
+      "emptyFrames": [
+        7,
+        11
+      ],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 40,
+        "top": 60,
+        "right": 700,
+        "bottom": 400
+      },
+      "spacing": {
+        "x": 12,
+        "y": 16
+      },
+      "notes": "Row0 idle(4), row1 pressed(3)+pad, row2 activated(3)+pad.",
+      "animations": [
+        {
+          "name": "plate_idle",
+          "start": 0,
+          "end": 3,
+          "fps": 6,
+          "repeat": -1
+        },
+        {
+          "name": "plate_pressed",
+          "start": 4,
+          "end": 6,
+          "fps": 10,
+          "repeat": 0
+        },
+        {
+          "name": "plate_activated",
+          "start": 8,
+          "end": 10,
+          "fps": 8,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "crystal",
+      "path": "interactive/pressure_plate_crystal.png",
+      "category": "crystal",
+      "textureKey": "pressure_plate_crystal",
+      "loadMode": "grid",
+      "frameWidth": 140,
+      "frameHeight": 160,
+      "columns": 5,
+      "rows": 2,
+      "frames": 10,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 820,
+        "top": 80,
+        "right": 40,
+        "bottom": 480
+      },
+      "spacing": {
+        "x": 12,
+        "y": 20
+      },
+      "animations": [
+        {
+          "name": "crystal_idle",
+          "start": 0,
+          "end": 4,
+          "fps": 6,
+          "repeat": -1
+        },
+        {
+          "name": "crystal_activated",
+          "start": 5,
+          "end": 9,
+          "fps": 10,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "laser_horizontal",
+      "path": "interactive/energy_beam_bridge.png",
+      "category": "laser",
+      "textureKey": "energy_beam_bridge",
+      "loadMode": "grid",
+      "frameWidth": 320,
+      "frameHeight": 80,
+      "columns": 4,
+      "rows": 1,
+      "frames": 4,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 80,
+        "top": 60,
+        "right": 80,
+        "bottom": 780
+      },
+      "spacing": {
+        "x": 16,
+        "y": 0
+      },
+      "animations": [
+        {
+          "name": "laser_h_idle",
+          "start": 0,
+          "end": 3,
+          "fps": 10,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "laser_vertical",
+      "path": "interactive/energy_beam_bridge.png",
+      "category": "laser",
+      "textureKey": "energy_beam_bridge",
+      "loadMode": "grid",
+      "frameWidth": 96,
+      "frameHeight": 200,
+      "columns": 5,
+      "rows": 1,
+      "frames": 5,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 80,
+        "top": 180,
+        "right": 80,
+        "bottom": 480
+      },
+      "spacing": {
+        "x": 24,
+        "y": 0
+      },
+      "animations": [
+        {
+          "name": "laser_v_idle",
+          "start": 0,
+          "end": 4,
+          "fps": 10,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "bridge",
+      "path": "interactive/energy_beam_bridge.png",
+      "category": "bridge",
+      "textureKey": "energy_beam_bridge",
+      "loadMode": "grid",
+      "frameWidth": 220,
+      "frameHeight": 100,
+      "columns": 3,
+      "rows": 3,
+      "frames": 9,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 80,
+        "top": 560,
+        "right": 80,
+        "bottom": 80
+      },
+      "spacing": {
+        "x": 20,
+        "y": 16
+      },
+      "animations": [
+        {
+          "name": "bridge_lowered",
+          "start": 0,
+          "end": 2,
+          "fps": 4,
+          "repeat": -1
+        },
+        {
+          "name": "bridge_raising",
+          "start": 3,
+          "end": 5,
+          "fps": 8,
+          "repeat": 0
+        },
+        {
+          "name": "bridge_raised",
+          "start": 6,
+          "end": 8,
+          "fps": 4,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "checkpoint",
+      "path": "interactive/checkpoint_particles.png",
+      "category": "checkpoint",
+      "textureKey": "checkpoint_particles",
+      "loadMode": "grid",
+      "frameWidth": 180,
+      "frameHeight": 200,
+      "columns": 3,
+      "rows": 2,
+      "frames": 6,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 40,
+        "top": 60,
+        "right": 700,
+        "bottom": 400
+      },
+      "spacing": {
+        "x": 16,
+        "y": 20
+      },
+      "animations": [
+        {
+          "name": "checkpoint_idle",
+          "start": 0,
+          "end": 2,
+          "fps": 4,
+          "repeat": -1
+        },
+        {
+          "name": "checkpoint_activated",
+          "start": 3,
+          "end": 5,
+          "fps": 8,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "particles",
+      "path": "interactive/checkpoint_particles.png",
+      "category": "particles",
+      "textureKey": "checkpoint_particles",
+      "loadMode": "grid",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "columns": 6,
+      "rows": 5,
+      "frames": 30,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 780,
+        "top": 60,
+        "right": 40,
+        "bottom": 80
+      },
+      "spacing": {
+        "x": 12,
+        "y": 12
+      },
+      "notes": "Rows: ember, spark, dust, smoke, magic sparkle (6 frames each).",
+      "animations": [
+        {
+          "name": "particle_ember",
+          "start": 0,
+          "end": 5,
+          "fps": 10,
+          "repeat": -1
+        },
+        {
+          "name": "particle_spark",
+          "start": 6,
+          "end": 11,
+          "fps": 12,
+          "repeat": -1
+        },
+        {
+          "name": "particle_dust",
+          "start": 12,
+          "end": 17,
+          "fps": 8,
+          "repeat": -1
+        },
+        {
+          "name": "particle_smoke",
+          "start": 18,
+          "end": 23,
+          "fps": 8,
+          "repeat": -1
+        },
+        {
+          "name": "particle_sparkle",
+          "start": 24,
+          "end": 29,
+          "fps": 12,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "tiles",
+      "path": "tiles/environment_tiles.png",
+      "category": "tiles",
+      "textureKey": "tiles",
+      "loadMode": "spritesheet",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 12,
+      "rows": 8,
+      "frames": 96,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "notes": "1536÷128=12, 1024÷128=8 — clean Phaser spritesheet.",
+      "animations": [
+        {
+          "name": "lava_flow_a",
+          "start": 48,
+          "end": 53,
+          "fps": 8,
+          "repeat": -1
+        },
+        {
+          "name": "lava_flow_b",
+          "start": 60,
+          "end": 65,
+          "fps": 8,
+          "repeat": -1
+        }
+      ]
+    },
+    {
+      "name": "props",
+      "path": "props/decorative_props.png",
+      "category": "props",
+      "textureKey": "props",
+      "loadMode": "spritesheet",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "columns": 6,
+      "rows": 4,
+      "frames": 24,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "animations": [
+        {
+          "name": "props_idle",
+          "start": 0,
+          "end": 0,
+          "fps": 1,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "name": "ui_buttons",
+      "path": "ui/ui_buttons_icons.png",
+      "category": "buttons",
+      "textureKey": "ui_sheet",
+      "loadMode": "grid",
+      "frameWidth": 280,
+      "frameHeight": 80,
+      "columns": 4,
+      "rows": 4,
+      "frames": 16,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 48,
+        "top": 40,
+        "right": 48,
+        "bottom": 520
+      },
+      "spacing": {
+        "x": 20,
+        "y": 16
+      },
+      "notes": "States: idle / hover / pressed / disabled across rows.",
+      "animations": [
+        {
+          "name": "button_idle",
+          "start": 0,
+          "end": 0,
+          "fps": 1,
+          "repeat": 0
+        },
+        {
+          "name": "button_hover",
+          "start": 4,
+          "end": 4,
+          "fps": 1,
+          "repeat": 0
+        },
+        {
+          "name": "button_pressed",
+          "start": 8,
+          "end": 8,
+          "fps": 1,
+          "repeat": 0
+        },
+        {
+          "name": "button_disabled",
+          "start": 12,
+          "end": 12,
+          "fps": 1,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "name": "ui_icons",
+      "path": "ui/ui_buttons_icons.png",
+      "category": "icons",
+      "textureKey": "ui_sheet",
+      "loadMode": "grid",
+      "frameWidth": 96,
+      "frameHeight": 96,
+      "columns": 7,
+      "rows": 3,
+      "frames": 21,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 64,
+        "top": 560,
+        "right": 64,
+        "bottom": 40
+      },
+      "spacing": {
+        "x": 16,
+        "y": 16
+      },
+      "animations": [
+        {
+          "name": "icon_idle",
+          "start": 0,
+          "end": 0,
+          "fps": 1,
+          "repeat": 0
+        }
+      ]
+    },
+    {
+      "name": "parallax",
+      "path": "backgrounds/parallax_backgrounds.png",
+      "category": "background",
+      "textureKey": "parallax",
+      "loadMode": "grid",
+      "frameWidth": 1472,
+      "frameHeight": 280,
+      "columns": 1,
+      "rows": 3,
+      "frames": 3,
+      "emptyFrames": [],
+      "direction": "vertical",
+      "detectionStatus": "override",
+      "margin": {
+        "left": 32,
+        "top": 40,
+        "right": 32,
+        "bottom": 40
+      },
+      "spacing": {
+        "x": 0,
+        "y": 24
+      },
+      "animations": []
+    },
+    {
+      "name": "effects",
+      "path": "effects/effects_overlays.png",
+      "category": "effects",
+      "textureKey": "effects",
+      "loadMode": "spritesheet",
+      "frameWidth": 768,
+      "frameHeight": 512,
+      "columns": 2,
+      "rows": 2,
+      "frames": 4,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "override",
+      "notes": "glow / heat / vignette / dust — 2×2 full-sheet spritesheet.",
+      "animations": []
+    },
+    {
+      "name": "background",
+      "path": "backgrounds/bg.png",
+      "category": "background",
+      "textureKey": "background",
+      "loadMode": "image",
+      "frameWidth": 1024,
+      "frameHeight": 768,
+      "columns": 1,
+      "rows": 1,
+      "frames": 1,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "image_only",
+      "animations": []
+    },
+    {
+      "name": "logo",
+      "path": "ui/logo.png",
+      "category": "ui",
+      "textureKey": "logo",
+      "loadMode": "image",
+      "frameWidth": 500,
+      "frameHeight": 108,
+      "columns": 1,
+      "rows": 1,
+      "frames": 1,
+      "emptyFrames": [],
+      "direction": "horizontal",
+      "detectionStatus": "image_only",
+      "animations": []
+    }
+  ],
+  "reports": [
+    {
+      "path": "backgrounds/bg.png",
+      "name": "bg",
+      "width": 1024,
+      "height": 768,
+      "status": "override",
+      "message": "Curated override present for backgrounds/bg.png (1024x768). Auto: Detected 16x12 grid @ 64x64",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 24
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 48
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 96
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 192
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 384
+        },
+        {
+          "frameWidth": 32,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 32,
+          "frameHeight": 24
+        }
+      ]
+    },
+    {
+      "path": "backgrounds/parallax_backgrounds.png",
+      "name": "parallax_backgrounds",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for backgrounds/parallax_backgrounds.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "characters/player_cube.png",
+      "name": "player_cube",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for characters/player_cube.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "doors/doors.png",
+      "name": "doors",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for doors/doors.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "effects/effects_overlays.png",
+      "name": "effects_overlays",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for effects/effects_overlays.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "interactive/checkpoint_particles.png",
+      "name": "checkpoint_particles",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for interactive/checkpoint_particles.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "interactive/energy_beam_bridge.png",
+      "name": "energy_beam_bridge",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for interactive/energy_beam_bridge.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "interactive/pressure_plate_crystal.png",
+      "name": "pressure_plate_crystal",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for interactive/pressure_plate_crystal.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "interactive/torch_pillars.png",
+      "name": "torch_pillars",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for interactive/torch_pillars.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "portals/exit_portal.png",
+      "name": "exit_portal",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for portals/exit_portal.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "props/decorative_props.png",
+      "name": "decorative_props",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for props/decorative_props.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "tiles/environment_tiles.png",
+      "name": "environment_tiles",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for tiles/environment_tiles.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "ui/logo.png",
+      "name": "logo",
+      "width": 500,
+      "height": 108,
+      "status": "override",
+      "message": "Curated override present for ui/logo.png (500x108). Auto: Unable to determine frame size. Possible sizes require confirmation before Phaser spritesheet loading.",
+      "possibleSizes": [
+        {
+          "frameWidth": 64,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 128,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 256,
+          "frameHeight": 256
+        }
+      ]
+    },
+    {
+      "path": "ui/ui_buttons_icons.png",
+      "name": "ui_buttons_icons",
+      "width": 1536,
+      "height": 1024,
+      "status": "override",
+      "message": "Curated override present for ui/ui_buttons_icons.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "possibleSizes": [
+        {
+          "frameWidth": 16,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 16,
+          "frameHeight": 512
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 16
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 32
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 256
+        },
+        {
+          "frameWidth": 24,
+          "frameHeight": 512
+        }
+      ]
+    }
+  ]
+}
