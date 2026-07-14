@@ -68,7 +68,6 @@ export class PushableCube {
     sprite.setTint(0xd9c4a0);
 
     this.createDust();
-    AssetManager.playCube(sprite, 'idle');
     PushableCube.instances.push(this);
   }
 
@@ -84,12 +83,9 @@ export class PushableCube {
       throw new Error('PushableCube: cube sheet missing from AssetManager');
     }
 
-    const hasFrame = scene.textures.get(sheet.textureKey).has('cube_0');
-    const sprite = hasFrame
-      ? scene.physics.add.sprite(x, y, sheet.textureKey, 'cube_0')
-      : scene.physics.add.sprite(x, y, sheet.textureKey);
+    const sprite = scene.physics.add.sprite(x, y, sheet.textureKey);
     sprite.setScale(SCALE);
-    sprite.setOrigin(0.5, 0.72);
+    sprite.setOrigin(0.5, 0.5);
 
     return new PushableCube(scene, sprite, {
       blockedCells: options.blockedCells,
@@ -216,7 +212,6 @@ export class PushableCube {
     this.moving = true;
     this.sprite.body.enable = false;
 
-    AssetManager.playCube(this.sprite, 'move');
     this.burstDust(dirX, dirY);
     playStoneMoveSound(this.scene);
 
@@ -234,7 +229,6 @@ export class PushableCube {
         this.sprite.body.reset(toX, toY);
         this.moving = false;
         this.moveTween = undefined;
-        AssetManager.playCube(this.sprite, 'idle');
         this.burstDust(dirX, dirY);
 
         EventBus.emitCubeMoved({

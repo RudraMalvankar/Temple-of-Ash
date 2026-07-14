@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-14T12:11:16.426Z",
+  "generatedAt": "2026-07-14T16:26:41.841Z",
   "basePath": "assets",
   "sheets": [
     {
@@ -899,12 +899,12 @@
       ]
     },
     {
-      "path": "characters/player_cube.png",
-      "name": "player_cube",
+      "path": "characters/1.png",
+      "name": "1",
       "width": 1536,
       "height": 1024,
-      "status": "override",
-      "message": "Curated override present for characters/player_cube.png (1536x1024). Auto: Detected 12x8 grid @ 128x128",
+      "status": "detected",
+      "message": "Detected 12x8 grid @ 128x128",
       "possibleSizes": [
         {
           "frameWidth": 16,
@@ -953,6 +953,37 @@
         {
           "frameWidth": 24,
           "frameHeight": 512
+        }
+      ]
+    },
+    {
+      "path": "characters/2.png",
+      "name": "2",
+      "width": 756,
+      "height": 1328,
+      "status": "detected",
+      "message": "Detected 14x83 grid @ 54x16",
+      "possibleSizes": []
+    },
+    {
+      "path": "characters/player_cube.png",
+      "name": "player_cube",
+      "width": 133,
+      "height": 140,
+      "status": "override",
+      "message": "Curated override present for characters/player_cube.png (133x140). Auto: Unable to determine frame size. Possible sizes require confirmation before Phaser spritesheet loading.",
+      "possibleSizes": [
+        {
+          "frameWidth": 64,
+          "frameHeight": 64
+        },
+        {
+          "frameWidth": 128,
+          "frameHeight": 128
+        },
+        {
+          "frameWidth": 256,
+          "frameHeight": 256
         }
       ]
     },

@@ -15,7 +15,6 @@ export class PlayerAnimator {
   private readonly shadow: GameObjects.Ellipse;
   private dust: ParticleEmitterLike | undefined;
   private ember: ParticleEmitterLike | undefined;
-  private currentAnim = '';
   private squashTween: Phaser.Tweens.Tween | undefined;
   private readonly baseScale: number;
 
@@ -43,8 +42,6 @@ export class PlayerAnimator {
       .setDepth(sprite.depth - 1);
 
     this.createParticles();
-    AssetManager.playCube(sprite, 'idle');
-    this.currentAnim = 'cube_idle';
   }
 
   update(state: PlayerRuntimeState): void {
@@ -58,7 +55,6 @@ export class PlayerAnimator {
     const shadowStretch = state.id === PlayerStateId.Rolling ? 1.15 : 1;
     this.shadow.setScale(shadowStretch, 1);
 
-    this.syncAnimation(state);
     this.syncParticles(state);
   }
 
@@ -93,32 +89,6 @@ export class PlayerAnimator {
     this.ember?.destroy();
     this.glow.destroy();
     this.shadow.destroy();
-  }
-
-  private syncAnimation(state: PlayerRuntimeState): void {
-    let next = 'cube_idle';
-    if (
-      state.id === PlayerStateId.Rolling ||
-      state.id === PlayerStateId.Moving ||
-      state.id === PlayerStateId.Stopping
-    ) {
-      next = 'cube_move';
-    }
-
-    if (this.sprite.anims) {
-      this.sprite.anims.timeScale = state.id === PlayerStateId.Rolling ? 1.35 : 1;
-    }
-
-    if (next === this.currentAnim) {
-      return;
-    }
-
-    if (next === 'cube_idle') {
-      AssetManager.playCube(this.sprite, 'idle');
-    } else {
-      AssetManager.playCube(this.sprite, 'move');
-    }
-    this.currentAnim = next;
   }
 
   private syncParticles(state: PlayerRuntimeState): void {

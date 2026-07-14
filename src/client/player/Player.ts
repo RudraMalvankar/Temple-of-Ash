@@ -66,14 +66,10 @@ export class Player {
       throw new Error('Player: cube sheet is not registered in AssetManager');
     }
 
-    const hasFrame = scene.textures.get(sheet.textureKey).has('cube_0');
-    const sprite = hasFrame
-      ? scene.physics.add.sprite(options.x, options.y, sheet.textureKey, 'cube_0')
-      : scene.physics.add.sprite(options.x, options.y, sheet.textureKey);
+    const sprite = scene.physics.add.sprite(options.x, options.y, sheet.textureKey);
 
     sprite.setScale(config.displayScale);
-    sprite.setOrigin(0.5, 0.72);
-    AssetManager.playCube(sprite, 'idle');
+    sprite.setOrigin(0.5, 0.5);
 
     return new Player(scene, sprite, config, options.blockedCells);
   }
