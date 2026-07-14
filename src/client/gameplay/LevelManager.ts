@@ -35,11 +35,25 @@ export class LevelManager {
   private static debugVisible = true;
   private static isTransitioning = false;
 
-  // Active spawn coordinates (saved at checkpoint activation, else defaults to original spawn)
   private static spawnCol = 0;
   private static spawnRow = 0;
   private static originalSpawnCol = 0;
   private static originalSpawnRow = 0;
+
+  private static verifyObject(sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.GameObject, name: string): void {
+    if (!sprite) {
+      console.error(`✗ ${name}: Failed to spawn (null/undefined)`);
+      return;
+    }
+    const s = sprite as any;
+    const isAlphaOk = s.alpha > 0;
+    const isScaleOk = s.scaleX !== 0 && s.scaleY !== 0;
+    const depthVal = s.depth;
+    const hasBody = s.body ? 'YES' : 'NO';
+    const isVisible = s.visible !== false;
+    const isActive = s.active !== false;
+    console.log(`✓ Verified ${name}: Depth=${depthVal}, Alpha=${s.alpha} (ok=${isAlphaOk}), Visible=${isVisible}, Active=${isActive}, Body=${hasBody}, Scale=(${s.scaleX}, ${s.scaleY}) (ok=${isScaleOk})`);
+  }
 
   static loadLevel(scene: Scene, levelIndex: number, cellSize = 64, useCheckpoint = false): LoadedLevel {
     LevelManager.scene = scene;
@@ -60,6 +74,8 @@ export class LevelManager {
       throw new Error(`LevelManager: level definition index ${levelIndex} not found.`);
     }
 
+    console.group(`[LevelManager] Loading level ${levelDef.id}: ${levelDef.name}`);
+
     const grid = new Grid(levelDef.gridWidth, levelDef.gridHeight, cellSize);
     LevelManager.wallsGroup = scene.physics.add.staticGroup();
     const cubes: PushableCube[] = [];
@@ -70,6 +86,17 @@ export class LevelManager {
     const bridges: Bridge[] = [];
     const crystals: Crystal[] = [];
     let portal: Portal | null = null;
+
+    let doorCount = 0;
+    let laserHCount = 0;
+    let laserVCount = 0;
+    let portalCount = 0;
+    let crystalCount = 0;
+    let bridgeCount = 0;
+    let lavaCount = 0;
+    let plateCount = 0;
+    let cubeCount = 0;
+    let checkpointCount = 0;
 
     // Load layout
     for (let r = 0; r < levelDef.gridHeight; r++) {
@@ -89,10 +116,12 @@ export class LevelManager {
         }
 
         if (token === 'L') {
-          // Spawn lava tile
+          lavaCount++;
+          console.log(`Spawn Lava at (${x},${y})`);
           const lava = AssetManager.spawnLava(scene, x, y, 'a');
           lava.setDisplaySize(cellSize, cellSize);
           grid.markLava(c, r);
+          LevelManager.verifyObject(lava, "Lava");
         }
 
         switch (token) {
@@ -113,6 +142,8 @@ export class LevelManager {
             break;
           }
           case 'C': {
+            cubeCount++;
+            console.log(`Spawn Pushable Cube at (${x},${y})`);
             const cube = PushableCube.create(scene, {
               x,
               y,
@@ -120,52 +151,77 @@ export class LevelManager {
               blockedCells: grid.getBlockedSet(),
             });
             cubes.push(cube);
+            LevelManager.verifyObject(cube.sprite, "Pushable Cube");
             break;
           }
           case 'O': {
+            plateCount++;
+            console.log(`Spawn Pressure Plate at (${x},${y})`);
             const plate = new PressurePlate(scene, c, r, cellSize, () => {
               LevelManager.checkPuzzleProgress();
             });
             plates.push(plate);
+            LevelManager.verifyObject(plate.sprite, "Pressure Plate");
             break;
           }
           case 'D': {
+            doorCount++;
+            console.log(`Spawn Door at (${x},${y})`);
             const door = new Door(scene, c, r, cellSize, grid.getBlockedSet());
             doors.push(door);
+            LevelManager.verifyObject(door.sprite, "Door");
             break;
           }
           case 'X': {
+            portalCount++;
+            console.log(`Spawn Portal at (${x},${y})`);
             portal = new Portal(scene, c, r, cellSize, () => {
               LevelManager.completeLevel();
             });
+            LevelManager.verifyObject(portal.sprite, "Portal");
             break;
           }
           case 'K': {
+            checkpointCount++;
+            console.log(`Spawn Checkpoint at (${x},${y})`);
             const checkpoint = new Checkpoint(scene, c, r, cellSize, (col, row) => {
               LevelManager.spawnCol = col;
               LevelManager.spawnRow = row;
             });
             checkpoints.push(checkpoint);
+            LevelManager.verifyObject(checkpoint.sprite, "Checkpoint");
             break;
           }
           case 'H': {
+            laserHCount++;
+            console.log(`Spawn Laser Horizontal at (${x},${y})`);
             const laser = new Laser(scene, c, r, cellSize, 'horizontal');
             lasers.push(laser);
+            LevelManager.verifyObject(laser.emitterSprite, "Laser Horizontal");
             break;
           }
           case 'V': {
+            laserVCount++;
+            console.log(`Spawn Laser Vertical at (${x},${y})`);
             const laser = new Laser(scene, c, r, cellSize, 'vertical');
             lasers.push(laser);
+            LevelManager.verifyObject(laser.emitterSprite, "Laser Vertical");
             break;
           }
           case 'B': {
+            bridgeCount++;
+            console.log(`Spawn Bridge at (${x},${y})`);
             const bridge = new Bridge(scene, c, r, cellSize, grid.getBlockedSet());
             bridges.push(bridge);
+            LevelManager.verifyObject(bridge.sprite, "Bridge");
             break;
           }
           case 'Y': {
+            crystalCount++;
+            console.log(`Spawn Crystal at (${x},${y})`);
             const crystal = new Crystal(scene, c, r, cellSize);
             crystals.push(crystal);
+            LevelManager.verifyObject(crystal.sprite, "Crystal");
             break;
           }
           case 'T': {
@@ -177,6 +233,19 @@ export class LevelManager {
         }
       }
     }
+
+    // Report optional assets that were skipped in level
+    if (doorCount === 0) console.log("Door: Skipped (not present in level)");
+    if (laserHCount === 0 && laserVCount === 0) console.log("Laser: Skipped (not present in level)");
+    if (portalCount === 0) console.log("Portal: Skipped (not present in level)");
+    if (crystalCount === 0) console.log("Crystal: Skipped (not present in level)");
+    if (bridgeCount === 0) console.log("Bridge: Skipped (not present in level)");
+    if (lavaCount === 0) console.log("Lava: Skipped (not present in level)");
+    if (plateCount === 0) console.log("Pressure Plate: Skipped (not present in level)");
+    if (cubeCount === 0) console.log("Pushable Cube: Skipped (not present in level)");
+    if (checkpointCount === 0) console.log("Checkpoint: Skipped (not present in level)");
+
+    console.groupEnd();
 
     // Spawn player at active coordinates
     const player = Player.create(scene, {
@@ -270,7 +339,7 @@ export class LevelManager {
 
     const { grid, plates, portal, checkpoints, cubes, lasers, crystals } = LevelManager.activeLevel;
 
-    // 1. Lava step-on check (Stepping onto lava kills the player)
+    // 1. Lava step-on check
     if (grid.isLava(playerCol, playerRow)) {
       LevelManager.killPlayer();
       return;
@@ -281,7 +350,6 @@ export class LevelManager {
       const cell = cube.getGridCell();
       if (grid.isLava(cell.col, cell.row)) {
         cube.burn();
-        // Remove cube from active list immediately
         const idx = cubes.indexOf(cube);
         if (idx >= 0) {
           cubes.splice(idx, 1);
@@ -298,7 +366,6 @@ export class LevelManager {
     for (const laser of lasers) {
       laser.update(playerCol, playerRow, grid.width, grid.height, grid.getBlockedSet(), cubes, 64);
       
-      // Touching laser beam kills the player
       if (laser.hasCell(playerCol, playerRow)) {
         LevelManager.killPlayer();
         return;
@@ -349,12 +416,10 @@ export class LevelManager {
     console.log('[LevelManager] Player died! Respawing at latest checkpoint...');
     const scene = LevelManager.scene;
 
-    // Camera shake & Fade out
     scene.cameras.main.shake(300, 0.02);
     scene.cameras.main.fadeOut(400, 0, 0, 0);
 
     scene.cameras.main.once('camerafadeoutcomplete', () => {
-      // Restore puzzle state but preserve checkpoint spawn position
       LevelManager.resetLevel(true);
       scene.cameras.main.fadeIn(400, 0, 0, 0);
     });
@@ -364,7 +429,6 @@ export class LevelManager {
     if (!LevelManager.scene) return;
     
     if (!useCheckpoint) {
-      // Clear checkpoint saved position back to start spawn
       LevelManager.spawnCol = LevelManager.originalSpawnCol;
       LevelManager.spawnRow = LevelManager.originalSpawnRow;
     }
@@ -378,17 +442,14 @@ export class LevelManager {
 
     const allPressed = plates.length > 0 ? plates.every(p => p.isPressed()) : true;
 
-    // Toggle doors
     for (const door of doors) {
       door.setOpen(allPressed);
     }
 
-    // Toggle bridges
     for (const bridge of bridges) {
       bridge.setActive(allPressed);
     }
 
-    // Activate exit portal
     if (portal) {
       portal.setActive(allPressed);
     }
@@ -407,7 +468,6 @@ export class LevelManager {
       if (nextIndex < LEVELS.length) {
         LevelManager.loadLevel(scene, nextIndex);
       } else {
-        // Returned to title screen upon final completion
         scene.scene.start('MainMenu');
       }
     });
