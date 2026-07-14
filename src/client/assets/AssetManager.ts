@@ -5,9 +5,7 @@ import type {
   AssetSheetDef,
   AssetsManifest,
   DetectionReport,
-  FrameRect,
 } from './types';
-import { buildFrameRects } from './SpriteSheetAnalyzer';
 import { LAYOUT_OVERRIDES } from './layoutOverrides';
 
 const ASSET_BASE = 'assets';
@@ -21,7 +19,6 @@ export class AssetManager {
   private static sheetsByName = new Map<string, AssetSheetDef>();
   private static sheetsByCategory = new Map<AssetCategoryId, AssetSheetDef[]>();
   private static loadedTextureKeys = new Set<string>();
-  private static framesRegistered = new Set<string>();
   private static animationsReady = false;
   private static detectionReports: DetectionReport[] = [];
 
@@ -76,7 +73,7 @@ export class AssetManager {
   }
 
   /**
-   * Phaser Loader: queues every unique texture. Safe to call from Preloader.preload().
+   * Phaser Loader: queues every unique texture as an individual frame image. Safe to call from Preloader.preload().
    */
   static loadAssets(scene: Scene): void {
     if (AssetManager.sheetsByName.size === 0) {
@@ -90,30 +87,30 @@ export class AssetManager {
       if (queued.has(sheet.textureKey)) {
         continue;
       }
-      if (scene.textures.exists(sheet.textureKey)) {
-        AssetManager.loadedTextureKeys.add(sheet.textureKey);
-        queued.add(sheet.textureKey);
-        continue;
-      }
       queued.add(sheet.textureKey);
 
-      const url = `${AssetManager.basePath}/${sheet.path}`;
-
-      if (sheet.loadMode === 'spritesheet') {
-        scene.load.spritesheet(sheet.textureKey, url, {
-          frameWidth: sheet.frameWidth,
-          frameHeight: sheet.frameHeight,
-        });
-      } else {
+      if (sheet.loadMode === 'image') {
+        const url = `${AssetManager.basePath}/${sheet.path}`;
         scene.load.image(sheet.textureKey, url);
+        AssetManager.loadedTextureKeys.add(sheet.textureKey);
+      } else {
+        // Load individual cropped frames
+        const subDir = AssetManager.getSubdirForSheet(sheet.name);
+        for (let i = 0; i < sheet.frames; i++) {
+          if (sheet.emptyFrames.includes(i)) {
+            continue;
+          }
+          const name = AssetManager.getDescriptiveName(sheet.name, i, sheet.animations);
+          const url = `${AssetManager.basePath}/${subDir}/${name}.png`;
+          scene.load.image(name, url);
+          AssetManager.loadedTextureKeys.add(name);
+        }
       }
-
-      AssetManager.loadedTextureKeys.add(sheet.textureKey);
     }
   }
 
   /**
-   * After textures resolve: register grid frames + create all animations.
+   * After textures resolve: create all animations from individual frame images.
    * Call from Preloader.create() (or any scene create after load).
    */
   static createAnimations(scene: Scene): void {
@@ -124,14 +121,29 @@ export class AssetManager {
     }
 
     for (const sheet of AssetManager.sheetsByName.values()) {
-      if (sheet.loadMode === 'grid') {
-        AssetManager.registerGridFrames(scene, sheet);
+      if (sheet.loadMode === 'image') {
+        continue;
       }
-    }
-
-    for (const sheet of AssetManager.sheetsByName.values()) {
       for (const anim of sheet.animations) {
-        AssetManager.createOneAnimation(scene, sheet, anim);
+        if (scene.anims.exists(anim.name)) {
+          continue;
+        }
+        const frames: Array<{ key: string }> = [];
+        for (let i = anim.start; i <= anim.end; i += 1) {
+          if (sheet.emptyFrames.includes(i)) {
+            continue;
+          }
+          const frameName = AssetManager.getDescriptiveName(sheet.name, i, sheet.animations);
+          frames.push({ key: frameName });
+        }
+        if (frames.length > 0) {
+          scene.anims.create({
+            key: anim.name,
+            frames: frames,
+            frameRate: anim.fps,
+            repeat: anim.repeat,
+          });
+        }
       }
     }
 
@@ -238,8 +250,8 @@ export class AssetManager {
   ): GameObjects.Sprite {
     const sheet = AssetManager.requireSheet('pillar');
     const frameIndex = Math.max(0, Math.min(variant, sheet.frames - 1));
-    const sprite = scene.add.sprite(x, y, sheet.textureKey, AssetManager.frameName(sheet, frameIndex));
-    return sprite;
+    const frameName = AssetManager.getDescriptiveName(sheet.name, frameIndex, sheet.animations);
+    return scene.add.sprite(x, y, frameName);
   }
 
   static createTile(
@@ -249,7 +261,8 @@ export class AssetManager {
     scene = AssetManager.requireScene()
   ): GameObjects.Sprite {
     const sheet = AssetManager.requireSheet('tiles');
-    return scene.add.sprite(x, y, sheet.textureKey, frameIndex);
+    const frameName = AssetManager.getDescriptiveName(sheet.name, frameIndex, sheet.animations);
+    return scene.add.sprite(x, y, frameName);
   }
 
   static createProp(
@@ -259,7 +272,8 @@ export class AssetManager {
     scene = AssetManager.requireScene()
   ): GameObjects.Sprite {
     const sheet = AssetManager.requireSheet('props');
-    return scene.add.sprite(x, y, sheet.textureKey, frameIndex);
+    const frameName = AssetManager.getDescriptiveName(sheet.name, frameIndex, sheet.animations);
+    return scene.add.sprite(x, y, frameName);
   }
 
   static spawnTorch(x: number, y: number, scene?: Scene): GameObjects.Sprite {
@@ -319,22 +333,20 @@ export class AssetManager {
       AssetManager.initCatalog();
     }
 
-    const lines: string[] = ['// Auto-generated by AssetManager — do not load these in scenes directly.'];
-    const seen = new Set<string>();
+    const lines: string[] = ['// Auto-generated by AssetManager — loaded as individual frame textures.'];
 
     for (const sheet of AssetManager.sheetsByName.values()) {
-      if (seen.has(sheet.textureKey)) {
-        continue;
-      }
-      seen.add(sheet.textureKey);
-      const url = `${AssetManager.basePath}/${sheet.path}`;
-
-      if (sheet.loadMode === 'spritesheet') {
-        lines.push(
-          `scene.load.spritesheet("${sheet.textureKey}", "${url}", { frameWidth: ${sheet.frameWidth}, frameHeight: ${sheet.frameHeight} });`
-        );
-      } else {
+      if (sheet.loadMode === 'image') {
+        const url = `${AssetManager.basePath}/${sheet.path}`;
         lines.push(`scene.load.image("${sheet.textureKey}", "${url}");`);
+      } else {
+        const subDir = AssetManager.getSubdirForSheet(sheet.name);
+        for (let i = 0; i < sheet.frames; i++) {
+          if (sheet.emptyFrames.includes(i)) continue;
+          const name = AssetManager.getDescriptiveName(sheet.name, i, sheet.animations);
+          const url = `${AssetManager.basePath}/${subDir}/${name}.png`;
+          lines.push(`scene.load.image("${name}", "${url}");`);
+        }
       }
     }
 
@@ -364,10 +376,6 @@ export class AssetManager {
     return sheet;
   }
 
-  private static frameName(sheet: AssetSheetDef, index: number): string {
-    return `${sheet.name}_${index}`;
-  }
-
   private static spawnAnimated(
     scene: Scene,
     x: number,
@@ -376,88 +384,120 @@ export class AssetManager {
     animKey: string
   ): GameObjects.Sprite {
     const sheet = AssetManager.requireSheet(sheetName);
-    const initialFrame =
-      sheet.loadMode === 'spritesheet' ? 0 : AssetManager.frameName(sheet, 0);
-    const sprite = scene.add.sprite(x, y, sheet.textureKey, initialFrame);
+    const anim = sheet.animations.find((a) => a.name === animKey);
+    const frameIndex = anim ? anim.start : 0;
+    const frameName = AssetManager.getDescriptiveName(sheet.name, frameIndex, sheet.animations);
+    const sprite = scene.add.sprite(x, y, frameName);
     AssetManager.playAnimation(sprite, animKey);
     return sprite;
   }
 
-  private static registerGridFrames(scene: Scene, sheet: AssetSheetDef): void {
-    const registryKey = `${sheet.textureKey}::${sheet.name}`;
-    if (AssetManager.framesRegistered.has(registryKey)) {
-      return;
+  private static getSubdirForSheet(sheetName: string): string {
+    switch (sheetName) {
+      case 'cube': return 'characters';
+      case 'door': return 'doors';
+      case 'portal': return 'portals';
+      case 'props': return 'props';
+      case 'tiles': return 'tiles';
+      case 'ui_buttons':
+      case 'ui_icons':
+        return 'ui';
+      case 'checkpoint': return 'interactive/Check Point';
+      case 'bridge':
+      case 'laser_horizontal':
+      case 'laser_vertical':
+        return 'interactive/Energy Beam';
+      case 'pillar':
+      case 'torch':
+        return 'interactive/Pillar';
+      case 'pressure_plate':
+      case 'crystal':
+        return 'interactive/Pressure Plate';
+      default:
+        return sheetName;
     }
-
-    if (!scene.textures.exists(sheet.textureKey)) {
-      console.warn(`[AssetManager] Texture missing for grid asset "${sheet.name}" (${sheet.textureKey})`);
-      return;
-    }
-
-    const texture = scene.textures.get(sheet.textureKey);
-    const margin = sheet.margin ?? { left: 0, top: 0, right: 0, bottom: 0 };
-    const spacing = sheet.spacing ?? { x: 0, y: 0 };
-
-    const rects: FrameRect[] = buildFrameRects({
-      columns: sheet.columns,
-      rows: sheet.rows,
-      frameWidth: sheet.frameWidth,
-      frameHeight: sheet.frameHeight,
-      marginLeft: margin.left,
-      marginTop: margin.top,
-      spacingX: spacing.x,
-      spacingY: spacing.y,
-      prefix: sheet.name,
-    });
-
-    for (const rect of rects) {
-      if (texture.has(rect.name)) {
-        continue;
-      }
-      texture.add(rect.name, 0, rect.x, rect.y, rect.width, rect.height);
-    }
-
-    AssetManager.framesRegistered.add(registryKey);
   }
 
-  private static createOneAnimation(scene: Scene, sheet: AssetSheetDef, anim: AnimationDef): void {
-    if (scene.anims.exists(anim.name)) {
-      return;
-    }
-
-    if (sheet.loadMode === 'spritesheet' || sheet.loadMode === 'image') {
-      scene.anims.create({
-        key: anim.name,
-        frames: scene.anims.generateFrameNumbers(sheet.textureKey, {
-          start: anim.start,
-          end: anim.end,
-        }),
-        frameRate: anim.fps,
-        repeat: anim.repeat,
-      });
-      return;
-    }
-
-    // Grid mode — named frames (asset_0, asset_1, ...)
-    const frames: Array<{ key: string; frame: string }> = [];
-    for (let i = anim.start; i <= anim.end; i += 1) {
-      if (sheet.emptyFrames.includes(i)) {
-        continue;
+  private static getDescriptiveName(sheetName: string, frameIndex: number, anims: AnimationDef[]): string {
+    for (const anim of anims) {
+      if (frameIndex >= anim.start && frameIndex <= anim.end) {
+        const idx = frameIndex - anim.start + 1;
+        const padIdx = String(idx).padStart(2, '0');
+        let cleanName = anim.name;
+        if (cleanName.startsWith('particle_')) cleanName = cleanName.replace('particle_', '');
+        if (cleanName.startsWith('plate_')) cleanName = cleanName.replace('plate_', 'pressure_plate_');
+        return `${cleanName}_${padIdx}`;
       }
-      frames.push({ key: sheet.textureKey, frame: AssetManager.frameName(sheet, i) });
     }
 
-    if (frames.length === 0) {
-      console.warn(`[AssetManager] Animation "${anim.name}" has no frames.`);
-      return;
+    const padIndex = String(frameIndex + 1).padStart(2, '0');
+    
+    if (sheetName === 'tiles') {
+      if (frameIndex >= 0 && frameIndex <= 11) return `floor_tile_${String(frameIndex + 1).padStart(2, '0')}`;
+      if (frameIndex >= 12 && frameIndex <= 23) return `wall_tile_${String(frameIndex - 11).padStart(2, '0')}`;
+      if (frameIndex >= 24 && frameIndex <= 35) return `wall_detail_${String(frameIndex - 23).padStart(2, '0')}`;
+      if (frameIndex >= 36 && frameIndex <= 47) return `dungeon_structure_${String(frameIndex - 35).padStart(2, '0')}`;
+      if (frameIndex >= 54 && frameIndex <= 59) return `lava_fringe_a_${String(frameIndex - 53).padStart(2, '0')}`;
+      if (frameIndex >= 66 && frameIndex <= 71) return `lava_fringe_b_${String(frameIndex - 65).padStart(2, '0')}`;
+      return `tile_decor_${String(frameIndex - 71).padStart(2, '0')}`;
     }
 
-    scene.anims.create({
-      key: anim.name,
-      frames,
-      frameRate: anim.fps,
-      repeat: anim.repeat,
-    });
+    if (sheetName === 'props') {
+      return `prop_decor_${padIndex}`;
+    }
+
+    if (sheetName === 'ui_buttons') {
+      if (frameIndex >= 16) {
+        const iconIndex = frameIndex - 16;
+        const iconNames = [
+          'icon_play', 'icon_pause', 'icon_restart', 'icon_close', 'icon_check', 'icon_arrow_left', 'icon_arrow_right',
+          'icon_sound_on', 'icon_sound_off', 'icon_music_on', 'icon_music_off', 'icon_star', 'icon_lock', 'icon_unlock',
+          'icon_home', 'icon_menu', 'icon_settings', 'icon_info', 'icon_help', 'icon_trophy', 'icon_leaderboard'
+        ];
+        return iconNames[iconIndex] || `icon_${String(iconIndex + 1).padStart(2, '0')}`;
+      }
+      const col = frameIndex % 4;
+      const row = Math.floor(frameIndex / 4);
+      const colorNames = ['green', 'blue', 'yellow', 'red'];
+      const stateNames = ['idle', 'hover', 'pressed', 'disabled'];
+      const color = colorNames[col] || 'button';
+      const state = stateNames[row] || 'state';
+      return `button_rectangular_${color}_${state}`;
+    }
+
+    if (sheetName === 'ui_icons') {
+      const iconNames = [
+        'icon_play', 'icon_pause', 'icon_restart', 'icon_close', 'icon_check', 'icon_arrow_left', 'icon_arrow_right',
+        'icon_sound_on', 'icon_sound_off', 'icon_music_on', 'icon_music_off', 'icon_star', 'icon_lock', 'icon_unlock',
+        'icon_home', 'icon_menu', 'icon_settings', 'icon_info', 'icon_help', 'icon_trophy', 'icon_leaderboard'
+      ];
+      return iconNames[frameIndex] || `icon_${padIndex}`;
+    }
+
+    if (sheetName === 'pillar') {
+      if (frameIndex < 3) return `pillar_intact_${String(frameIndex + 1).padStart(2, '0')}`;
+      return `pillar_broken_${String(frameIndex - 2).padStart(2, '0')}`;
+    }
+
+    if (sheetName === 'parallax') {
+      const bgNames = ['sky', 'mountains', 'foreground'];
+      return `parallax_bg_${bgNames[frameIndex] || padIndex}`;
+    }
+
+    if (sheetName === 'effects') {
+      const effectNames = ['ambient_glow', 'vignette', 'lens_flare', 'particles_dust'];
+      return `effect_${effectNames[frameIndex] || padIndex}`;
+    }
+
+    if (sheetName === 'background') {
+      return 'bg_main';
+    }
+
+    if (sheetName === 'logo') {
+      return 'logo_title';
+    }
+
+    return `${sheetName}_frame_${padIndex}`;
   }
 
   private static pushNeedsConfirmation(sheet: AssetSheetDef): void {
