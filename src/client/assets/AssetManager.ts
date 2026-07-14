@@ -3,8 +3,6 @@ import type { AssetCategoryId } from './AssetCategory';
 import type {
   AnimationDef,
   AssetSheetDef,
-  AssetsManifest,
-  DetectionReport,
 } from './types';
 import { LAYOUT_OVERRIDES } from './layoutOverrides';
 
@@ -20,17 +18,12 @@ export class AssetManager {
   private static sheetsByCategory = new Map<AssetCategoryId, AssetSheetDef[]>();
   private static loadedTextureKeys = new Set<string>();
   private static animationsReady = false;
-  private static detectionReports: DetectionReport[] = [];
 
   /** Absolute URL / relative path prefix for asset files. */
   static basePath = ASSET_BASE;
 
   static getSheets(): readonly AssetSheetDef[] {
     return [...AssetManager.sheetsByName.values()];
-  }
-
-  static getReport(): readonly DetectionReport[] {
-    return AssetManager.detectionReports;
   }
 
   static getTexture(key: string): string {
@@ -49,13 +42,9 @@ export class AssetManager {
     return AssetManager.sheetsByCategory.get(category) ?? [];
   }
 
-  /**
-   * Registers catalog entries. Call once before loadAssets (or it auto-inits).
-   */
   static initCatalog(sheets: readonly AssetSheetDef[] = LAYOUT_OVERRIDES): void {
     AssetManager.sheetsByName.clear();
     AssetManager.sheetsByCategory.clear();
-    AssetManager.detectionReports = [];
 
     for (const sheet of sheets) {
       AssetManager.sheetsByName.set(sheet.name, sheet);
@@ -63,13 +52,7 @@ export class AssetManager {
       const list = AssetManager.sheetsByCategory.get(sheet.category) ?? [];
       list.push(sheet);
       AssetManager.sheetsByCategory.set(sheet.category, list);
-
-      if (sheet.detectionStatus === 'needs_confirmation') {
-        AssetManager.pushNeedsConfirmation(sheet);
-      }
     }
-
-    AssetManager.printDetectionReport();
   }
 
   /**
@@ -308,22 +291,7 @@ export class AssetManager {
     return AssetManager.createBridge(x, y, scene ?? AssetManager.requireScene());
   }
 
-  /**
-   * Builds the JSON-serializable catalog (for assets.json / tooling).
-   */
-  static toManifest(): AssetsManifest {
-    if (AssetManager.sheetsByName.size === 0) {
-      AssetManager.initCatalog();
-    }
 
-    return {
-      version: 1,
-      generatedAt: new Date().toISOString(),
-      basePath: AssetManager.basePath,
-      sheets: AssetManager.getSheets().map((sheet) => ({ ...sheet })),
-      reports: [...AssetManager.detectionReports],
-    };
-  }
 
   /**
    * Generates the Phaser load snippets developers can paste / verify.
@@ -498,64 +466,5 @@ export class AssetManager {
     }
 
     return `${sheetName}_frame_${padIndex}`;
-  }
-
-  private static pushNeedsConfirmation(sheet: AssetSheetDef): void {
-    const possible =
-      sheet.possibleSizes ??
-      ([
-        { frameWidth: 64, frameHeight: 64 },
-        { frameWidth: 128, frameHeight: 128 },
-        { frameWidth: 256, frameHeight: 256 },
-      ] as const);
-
-    const report: DetectionReport = {
-      path: sheet.path,
-      name: sheet.name,
-      width: sheet.columns * sheet.frameWidth,
-      height: sheet.rows * sheet.frameHeight,
-      status: 'needs_confirmation',
-      message: [
-        `${sheet.path}`,
-        'Unable to determine frame size.',
-        'Possible:',
-        ...possible.map((s) => `${s.frameWidth}x${s.frameHeight}`),
-        'Needs confirmation.',
-      ].join('\n'),
-      possibleSizes: possible,
-    };
-    AssetManager.detectionReports.push(report);
-  }
-
-  private static printDetectionReport(): void {
-    const uncertain = [...AssetManager.sheetsByName.values()].filter(
-      (s) => s.detectionStatus === 'needs_confirmation'
-    );
-    const overrides = [...AssetManager.sheetsByName.values()].filter(
-      (s) => s.detectionStatus === 'override'
-    );
-
-    if (uncertain.length === 0 && overrides.length === 0) {
-      return;
-    }
-
-    console.group('[AssetManager] Sprite sheet detection report');
-    for (const sheet of overrides) {
-      console.info(
-        `${sheet.path} → "${sheet.name}" using curated override (${sheet.columns}x${sheet.rows} @ ${sheet.frameWidth}x${sheet.frameHeight}). ${sheet.notes ?? ''}`
-      );
-    }
-    for (const sheet of uncertain) {
-      console.warn(
-        [
-          sheet.path,
-          'Unable to determine frame size.',
-          'Possible:',
-          ...(sheet.possibleSizes ?? []).map((s) => `${s.frameWidth}x${s.frameHeight}`),
-          'Needs confirmation.',
-        ].join('\n')
-      );
-    }
-    console.groupEnd();
   }
 }
