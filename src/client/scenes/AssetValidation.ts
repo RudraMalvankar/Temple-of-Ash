@@ -343,7 +343,7 @@ export class AssetValidation extends Scene {
       .text(
         0,
         0,
-        this.passed ? 'Continue → Player Test' : 'Blocked until all checks pass',
+        this.passed ? 'Continue → Push Test' : 'Blocked until all checks pass',
         {
           fontFamily: 'Arial',
           fontSize: '14px',
@@ -358,7 +358,7 @@ export class AssetValidation extends Scene {
 
     if (this.passed) {
       this.actionText.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
-        this.scene.start('PlayerTestScene');
+        this.scene.start('PushTestScene');
       });
     }
   }

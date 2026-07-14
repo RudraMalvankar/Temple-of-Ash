@@ -29,6 +29,17 @@ export type PlayerGridCellPayload = {
   row: number;
 };
 
+export type CubeMovedPayload = {
+  cubeId: string;
+  fromCol: number;
+  fromRow: number;
+  toCol: number;
+  toRow: number;
+  /** Center of the tile the cube now occupies — pressure plates can listen for this. */
+  x: number;
+  y: number;
+};
+
 /**
  * Typed pub/sub for gameplay systems.
  * Explicit per-event APIs keep TypeScript sound without assertions.
@@ -39,6 +50,7 @@ export class EventBus {
   private static readonly impactHandlers = new Set<Handler<PlayerImpactPayload>>();
   private static readonly stateHandlers = new Set<Handler<PlayerStatePayload>>();
   private static readonly gridHandlers = new Set<Handler<PlayerGridCellPayload>>();
+  private static readonly cubeMovedHandlers = new Set<Handler<CubeMovedPayload>>();
 
   static onMove(handler: Handler<PlayerMovePayload>): () => void {
     EventBus.moveHandlers.add(handler);
@@ -75,6 +87,13 @@ export class EventBus {
     };
   }
 
+  static onCubeMoved(handler: Handler<CubeMovedPayload>): () => void {
+    EventBus.cubeMovedHandlers.add(handler);
+    return () => {
+      EventBus.cubeMovedHandlers.delete(handler);
+    };
+  }
+
   static emitMove(payload: PlayerMovePayload): void {
     for (const handler of [...EventBus.moveHandlers]) {
       handler(payload);
@@ -105,12 +124,19 @@ export class EventBus {
     }
   }
 
+  static emitCubeMoved(payload: CubeMovedPayload): void {
+    for (const handler of [...EventBus.cubeMovedHandlers]) {
+      handler(payload);
+    }
+  }
+
   static clear(): void {
     EventBus.moveHandlers.clear();
     EventBus.stopHandlers.clear();
     EventBus.impactHandlers.clear();
     EventBus.stateHandlers.clear();
     EventBus.gridHandlers.clear();
+    EventBus.cubeMovedHandlers.clear();
   }
 }
 
@@ -121,4 +147,8 @@ export const PlayerEvents = {
   Impact: 'player:impact',
   StateChanged: 'player:state',
   GridCellChanged: 'player:grid-cell',
+} as const;
+
+export const CubeEvents = {
+  Moved: 'cubeMoved',
 } as const;

@@ -4,6 +4,7 @@ import { Game as MainGame } from './scenes/Game';
 import { MainMenu } from './scenes/MainMenu';
 import { AssetValidation } from './scenes/AssetValidation';
 import { PlayerTestScene } from './scenes/PlayerTestScene';
+import { PushTestScene } from './scenes/PushTestScene';
 import { Preloader } from './scenes/Preloader';
 import * as Phaser from 'phaser';
 import { AUTO, Game } from 'phaser';
@@ -25,7 +26,16 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [Boot, Preloader, AssetValidation, PlayerTestScene, MainMenu, MainGame, GameOver],
+  scene: [
+    Boot,
+    Preloader,
+    AssetValidation,
+    PushTestScene,
+    PlayerTestScene,
+    MainMenu,
+    MainGame,
+    GameOver,
+  ],
 };
 
 const StartGame = (parent: string) => {
