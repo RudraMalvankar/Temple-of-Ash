@@ -12,14 +12,11 @@ type GalleryCard = {
   sheet: AssetSheetDef;
   root: GameObjects.Container;
   sprite: GameObjects.Sprite | GameObjects.Rectangle;
-  animIndex: number;
-  animTimer: number;
   hasTexture: boolean;
-  missingAnims: string[];
 };
 
 const CARD_WIDTH = 220;
-const CARD_HEIGHT = 280;
+const CARD_HEIGHT = 220; // Reduced height since animation debug logs are removed
 const COLS = 4;
 const GAP_X = 16;
 const GAP_Y = 28;
@@ -33,8 +30,8 @@ const MUTED = '#b8c0cc';
 const WHITE = '#f2f5fa';
 
 /**
- * Scrollable gallery that verifies every AssetManager sheet/animation
- * before gameplay scenes are allowed to run.
+ * Scrollable gallery that verifies every AssetManager sheet/frame
+ * before gameplay scenes are allowed to run. Optimized for static sprite pipeline.
  */
 export class AssetValidation extends Scene {
   private gallery!: GameObjects.Container;
@@ -67,30 +64,6 @@ export class AssetValidation extends Scene {
     this.layout();
 
     this.scale.on('resize', () => this.layout());
-  }
-
-  override update(_time: number, delta: number): void {
-    for (const card of this.cards) {
-      if (!card.hasTexture || card.sheet.animations.length < 2) {
-        continue;
-      }
-      if (!('play' in card.sprite)) {
-        continue;
-      }
-
-      card.animTimer += delta;
-      if (card.animTimer < 1800) {
-        continue;
-      }
-
-      card.animTimer = 0;
-      card.animIndex = (card.animIndex + 1) % card.sheet.animations.length;
-      const anim = card.sheet.animations[card.animIndex];
-      if (!anim || !this.anims.exists(anim.name)) {
-        continue;
-      }
-      card.sprite.play(anim.name);
-    }
   }
 
   private buildGallery(): void {
@@ -137,14 +110,15 @@ export class AssetValidation extends Scene {
   }
 
   private createCard(sheet: AssetSheetDef, x: number, y: number): GameObjects.Container {
-    const hasTexture = this.textures.exists(sheet.textureKey);
-    const missingAnims = sheet.animations
-      .filter((anim) => !this.anims.exists(anim.name))
-      .map((anim) => anim.name);
+    const firstFrameName = sheet.loadMode === 'image'
+      ? sheet.textureKey
+      : AssetManager.getDescriptiveName(sheet.name, 0, sheet.animations);
+    
+    const hasTexture = this.textures.exists(firstFrameName);
     const frameInvalid = this.report.invalidFrameSizes.some((item) =>
       item.startsWith(`${sheet.name}:`)
     );
-    const hasError = !hasTexture || missingAnims.length > 0 || frameInvalid;
+    const hasError = !hasTexture || frameInvalid;
 
     const root = this.add.container(x, y);
     root.add(
@@ -156,31 +130,21 @@ export class AssetValidation extends Scene {
 
     let sprite: GameObjects.Sprite | GameObjects.Rectangle;
     if (hasTexture) {
-      const preview = this.add.sprite(CARD_WIDTH / 2, 78, sheet.textureKey);
+      const preview = this.add.sprite(CARD_WIDTH / 2, 70, firstFrameName);
       const scale = Math.min(
         (CARD_WIDTH - 24) / Math.max(preview.width, 1),
-        110 / Math.max(preview.height, 1),
+        90 / Math.max(preview.height, 1),
         1
       );
       preview.setScale(scale);
-
-      const firstAnim = sheet.animations[0];
-      if (firstAnim && this.anims.exists(firstAnim.name)) {
-        preview.play(firstAnim.name);
-      } else if (sheet.loadMode === 'grid') {
-        const frameKey = `${sheet.name}_0`;
-        if (this.textures.get(sheet.textureKey).has(frameKey)) {
-          preview.setFrame(frameKey);
-        }
-      }
       sprite = preview;
     } else {
       sprite = this.add
-        .rectangle(CARD_WIDTH / 2, 78, CARD_WIDTH - 24, 110, 0x3a1010)
+        .rectangle(CARD_WIDTH / 2, 70, CARD_WIDTH - 24, 90, 0x3a1010)
         .setStrokeStyle(2, 0xff4d4d);
       root.add(
         this.add
-          .text(CARD_WIDTH / 2, 78, 'MISSING\nTEXTURE', {
+          .text(CARD_WIDTH / 2, 70, 'MISSING\nTEXTURE', {
             fontFamily: 'Arial',
             fontSize: '14px',
             color: RED,
@@ -191,31 +155,29 @@ export class AssetValidation extends Scene {
     }
     root.add(sprite);
 
-    const texSize = hasTexture ? this.getTextureSizeLabel(sheet.textureKey) : 'n/a';
-    const fpsLabels =
-      sheet.animations.length > 0
-        ? sheet.animations.map((anim) => String(anim.fps)).join(', ')
-        : '—';
-    const animNames =
-      sheet.animations.length > 0 ? sheet.animations.map((anim) => anim.name).join(', ') : '(none)';
-
     root.add(
       this.add
-        .text(CARD_WIDTH / 2, 145, sheet.name, {
+        .text(CARD_WIDTH / 2, 130, sheet.name, {
           fontFamily: 'Arial',
-          fontSize: '15px',
+          fontSize: '14px',
           color: hasError ? RED : WHITE,
           fontStyle: 'bold',
         })
         .setOrigin(0.5, 0)
     );
 
+    const texSize = hasTexture ? this.getTextureSizeLabel(firstFrameName) : 'n/a';
     root.add(
       this.add
         .text(
-          10,
-          168,
-          [`frames: ${sheet.frames}`, `fps: ${fpsLabels}`, `tex: ${texSize}`, 'anims:'].join('\n'),
+          12,
+          152,
+          [
+            `Frames: ${sheet.frames}`,
+            `Dim: ${texSize}`,
+            `Mode: ${sheet.loadMode}`,
+            `Status: ${hasError ? 'Failed' : 'Valid'}`
+          ].join('\n'),
           {
             fontFamily: 'Arial',
             fontSize: '11px',
@@ -226,48 +188,11 @@ export class AssetValidation extends Scene {
         .setOrigin(0, 0)
     );
 
-    root.add(
-      this.add
-        .text(10, 228, this.truncate(animNames, 44), {
-          fontFamily: 'Arial',
-          fontSize: '10px',
-          color: missingAnims.length > 0 ? RED : MUTED,
-          wordWrap: { width: CARD_WIDTH - 20 },
-        })
-        .setOrigin(0, 0)
-    );
-
-    if (missingAnims.length > 0) {
-      root.add(
-        this.add
-          .text(10, 258, `missing: ${missingAnims.join(', ')}`, {
-            fontFamily: 'Arial',
-            fontSize: '10px',
-            color: RED,
-            wordWrap: { width: CARD_WIDTH - 20 },
-          })
-          .setOrigin(0, 0)
-      );
-    } else if (frameInvalid) {
-      root.add(
-        this.add
-          .text(10, 258, 'invalid frame size', {
-            fontFamily: 'Arial',
-            fontSize: '10px',
-            color: RED,
-          })
-          .setOrigin(0, 0)
-      );
-    }
-
     this.cards.push({
       sheet,
       root,
       sprite,
-      animIndex: 0,
-      animTimer: 0,
       hasTexture,
-      missingAnims,
     });
 
     return root;
@@ -281,7 +206,7 @@ export class AssetValidation extends Scene {
       .setDepth(1000);
 
     this.add
-      .text(16, 10, 'ASSET VALIDATION', {
+      .text(16, 10, 'ASSET VALIDATION (STATIC)', {
         fontFamily: 'Arial',
         fontSize: '20px',
         color: WHITE,
@@ -294,7 +219,7 @@ export class AssetValidation extends Scene {
       .text(
         16,
         36,
-        this.passed ? 'VALIDATION PASSED' : 'VALIDATION FAILED — fix issues before gameplay',
+        this.passed ? '✓ VALIDATION PASSED' : '✗ VALIDATION FAILED — missing frame textures',
         {
           fontFamily: 'Arial',
           fontSize: '14px',
@@ -311,26 +236,18 @@ export class AssetValidation extends Scene {
         ok: this.report.missingAssets.length === 0 && this.report.assetsLoaded.length > 0,
       },
       {
-        label: `✓ Animations Loaded (${this.report.animationsLoaded.length})`,
-        ok: this.report.missingAnimations.length === 0,
-      },
-      {
         label: `✓ Missing Assets (${this.report.missingAssets.length})`,
         ok: this.report.missingAssets.length === 0,
       },
       {
-        label: `✓ Missing Animations (${this.report.missingAnimations.length})`,
-        ok: this.report.missingAnimations.length === 0,
-      },
-      {
-        label: `✓ Invalid Frame Sizes (${this.report.invalidFrameSizes.length})`,
+        label: `✓ Invalid Frames (${this.report.invalidFrameSizes.length})`,
         ok: this.report.invalidFrameSizes.length === 0,
       },
     ];
 
     for (const [index, line] of lines.entries()) {
       this.add
-        .text(16 + (index < 3 ? 0 : 260), 58 + (index % 3) * 16, line.label, {
+        .text(16 + index * 220, 64, line.label, {
           fontFamily: 'Arial',
           fontSize: '12px',
           color: line.ok ? GREEN : RED,
@@ -420,9 +337,5 @@ export class AssetValidation extends Scene {
     const width = 'width' in source ? Number(source.width) : 0;
     const height = 'height' in source ? Number(source.height) : 0;
     return `${width}x${height}`;
-  }
-
-  private truncate(value: string, max: number): string {
-    return value.length <= max ? value : `${value.slice(0, max - 1)}…`;
   }
 }

@@ -418,7 +418,7 @@ export class AssetManager {
     }
   }
 
-  private static getDescriptiveName(sheetName: string, frameIndex: number, anims: AnimationDef[]): string {
+  public static getDescriptiveName(sheetName: string, frameIndex: number, anims: AnimationDef[]): string {
     for (const anim of anims) {
       if (frameIndex >= anim.start && frameIndex <= anim.end) {
         const idx = frameIndex - anim.start + 1;
