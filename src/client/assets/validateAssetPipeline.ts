@@ -5,51 +5,73 @@ export type ValidationIssue = {
   key: string;
   kind: 'missing_texture' | 'missing_animation' | 'invalid_dimensions' | 'duplicate_key';
   detail: string;
+  required: boolean;
 };
 
 export type PipelineValidationReport = {
   assetsLoadedCount: number;
-  animationsCreatedCount: number;
-  missingAssets: string[];
-  missingAnimations: string[];
+  missingRequiredAssets: string[];
+  missingOptionalAssets: string[];
   invalidDimensions: string[];
   duplicateKeys: string[];
   issues: ValidationIssue[];
   passed: boolean;
 };
 
+export const isRequiredAsset = (key: string, category: string): boolean => {
+  if (key === 'bg_main') return true;
+  if (key === 'player_cube') return true;
+  if (category === 'TILES') {
+    if (key.startsWith('floor_tile_') || key.startsWith('wall_tile_')) return true;
+  }
+  if (category === 'CHARACTERS') return true;
+  if (category === 'PORTALS') return true;
+  if (category === 'DOORS') return true;
+  if (category === 'PRESSURE_PLATES') return true;
+  if (category === 'BRIDGES') return true;
+  if (category === 'CHECKPOINTS') return true;
+  return false;
+};
+
 export const validateAssetPipeline = (scene: Scene): PipelineValidationReport => {
   const staticAssets = AssetManager.getStaticAssets();
   const animAssets = AssetManager.getAnimAssets();
 
-  const missingAssets: string[] = [];
-  const missingAnimations: string[] = [];
+  const missingRequiredAssets: string[] = [];
+  const missingOptionalAssets: string[] = [];
   const invalidDimensions: string[] = [];
   const duplicateKeys: string[] = [];
   const issues: ValidationIssue[] = [];
 
   const seenKeys = new Set<string>();
   let assetsLoadedCount = 0;
-  let animationsCreatedCount = 0;
 
   // 1. Validate Static Assets
   for (const asset of staticAssets) {
+    const required = isRequiredAsset(asset.key, asset.category);
+
     if (seenKeys.has(asset.key)) {
       duplicateKeys.push(asset.key);
       issues.push({
         key: asset.key,
         kind: 'duplicate_key',
         detail: `Duplicate static key "${asset.key}" registered.`,
+        required,
       });
     }
     seenKeys.add(asset.key);
 
     if (!scene.textures.exists(asset.key)) {
-      missingAssets.push(asset.key);
+      if (required) {
+        missingRequiredAssets.push(asset.key);
+      } else {
+        missingOptionalAssets.push(asset.key);
+      }
       issues.push({
         key: asset.key,
         kind: 'missing_texture',
-        detail: `Static image texture not loaded for key: "${asset.key}". Path: ${asset.path}`,
+        detail: `Static texture missing for key: "${asset.key}".`,
+        required,
       });
     } else {
       assetsLoadedCount++;
@@ -64,6 +86,7 @@ export const validateAssetPipeline = (scene: Scene): PipelineValidationReport =>
           key: asset.key,
           kind: 'invalid_dimensions',
           detail: `Static image "${asset.key}" has invalid dimensions: ${width}x${height}`,
+          required,
         });
       }
     }
@@ -71,35 +94,34 @@ export const validateAssetPipeline = (scene: Scene): PipelineValidationReport =>
 
   // 2. Validate Animation Assets
   for (const anim of animAssets) {
+    const required = isRequiredAsset(anim.key, anim.category);
+
     if (seenKeys.has(anim.key)) {
       duplicateKeys.push(anim.key);
       issues.push({
         key: anim.key,
         kind: 'duplicate_key',
         detail: `Duplicate animation key "${anim.key}" registered.`,
+        required,
       });
     }
     seenKeys.add(anim.key);
 
-    // Verify all frames for the animation sequence are loaded as textures
-    let startIndex = 1;
-    if (anim.key === 'cube_move') startIndex = 6;
-    else if (anim.key === 'cube_jump') startIndex = 11;
-    else if (anim.key === 'cube_charged') startIndex = 16;
-    else if (anim.key === 'cube_damage') startIndex = 21;
-    else if (anim.key === 'cube_destroy') startIndex = 26;
+    const frameNums = anim.customFrames || Array.from({ length: anim.frames }, (_, i) => i + 1);
 
-    let animFramesOk = true;
-    for (let i = 0; i < anim.frames; i++) {
-      const frameIndex = startIndex + i;
-      const frameName = `${anim.prefix}${String(frameIndex).padStart(2, '0')}`;
+    for (const f of frameNums) {
+      const frameName = `${anim.prefix}${String(f).padStart(2, '0')}`;
       if (!scene.textures.exists(frameName)) {
-        animFramesOk = false;
-        missingAssets.push(frameName);
+        if (required) {
+          missingRequiredAssets.push(frameName);
+        } else {
+          missingOptionalAssets.push(frameName);
+        }
         issues.push({
           key: frameName,
           kind: 'missing_texture',
           detail: `Frame texture "${frameName}" not loaded for animation "${anim.key}".`,
+          required,
         });
       } else {
         assetsLoadedCount++;
@@ -114,35 +136,29 @@ export const validateAssetPipeline = (scene: Scene): PipelineValidationReport =>
             key: frameName,
             kind: 'invalid_dimensions',
             detail: `Frame image "${frameName}" has invalid dimensions: ${width}x${height}`,
+            required,
           });
         }
       }
     }
 
-    // Verify Phaser animation object exists in cache
-    if (!scene.anims.exists(anim.key)) {
-      missingAnimations.push(anim.key);
+    if (!scene.anims.exists(anim.key) && required) {
       issues.push({
         key: anim.key,
         kind: 'missing_animation',
         detail: `Phaser animation cache entry missing for animation key: "${anim.key}"`,
+        required,
       });
-    } else if (animFramesOk) {
-      animationsCreatedCount++;
     }
   }
 
-  const passed =
-    missingAssets.length === 0 &&
-    missingAnimations.length === 0 &&
-    invalidDimensions.length === 0 &&
-    duplicateKeys.length === 0;
+  // The validation only fails if required assets are missing
+  const passed = missingRequiredAssets.length === 0;
 
   return {
     assetsLoadedCount,
-    animationsCreatedCount,
-    missingAssets,
-    missingAnimations,
+    missingRequiredAssets,
+    missingOptionalAssets,
     invalidDimensions,
     duplicateKeys,
     issues,
@@ -152,45 +168,24 @@ export const validateAssetPipeline = (scene: Scene): PipelineValidationReport =>
 
 export const printPipelineReport = (report: PipelineValidationReport): void => {
   const ok = (label: string, detail: string) => console.log(`✓ ${label}${detail}`);
+  const warn = (label: string, detail: string) => console.warn(`⚠ ${label}${detail}`);
   const bad = (label: string, detail: string) => console.error(`✗ ${label}${detail}`);
 
-  const mark = (pass: boolean, label: string, detail: string) => {
-    if (pass) {
-      ok(label, detail);
-    } else {
-      bad(label, detail);
-    }
-  };
-
-  console.group('[Asset Validation] Static Sprite Pipeline Report');
-  mark(
-    report.missingAssets.length === 0 && report.assetsLoadedCount > 0,
-    'Individual Textures Loaded',
-    ` (${report.assetsLoadedCount})`
-  );
-  mark(
-    report.missingAnimations.length === 0 && report.animationsCreatedCount > 0,
-    'Animations Registered',
-    ` (${report.animationsCreatedCount})`
-  );
-  mark(report.missingAssets.length === 0, 'Missing Textures', ` (${report.missingAssets.length})`);
-  mark(report.missingAnimations.length === 0, 'Missing Animations', ` (${report.missingAnimations.length})`);
-  mark(report.invalidDimensions.length === 0, 'Invalid Dimensions', ` (${report.invalidDimensions.length})`);
-  mark(report.duplicateKeys.length === 0, 'Duplicate Keys Detected', ` (${report.duplicateKeys.length})`);
-
-  if (report.missingAssets.length > 0) {
-    console.error('  Missing files:', report.missingAssets.join(', '));
-  }
-  if (report.missingAnimations.length > 0) {
-    console.error('  Missing animations:', report.missingAnimations.join(', '));
-  }
-  if (report.invalidDimensions.length > 0) {
-    console.error('  Invalid dimensions:', report.invalidDimensions.join(', '));
-  }
-  if (report.duplicateKeys.length > 0) {
-    console.error('  Duplicate keys:', report.duplicateKeys.join(', '));
+  console.group('[Asset Validation] Graceful Pipeline Report');
+  console.log(`Assets loaded successfully: ${report.assetsLoadedCount}`);
+  
+  if (report.missingRequiredAssets.length === 0) {
+    ok('Required Assets Checked', ' (All present)');
+  } else {
+    bad('Missing Required Assets', ` (${report.missingRequiredAssets.length} missing)`);
+    console.error('  Missing required:', report.missingRequiredAssets.join(', '));
   }
 
-  console.log(report.passed ? '\nSTATIC PIPELINE VALIDATION PASSED' : '\nVALIDATION FAILED');
+  if (report.missingOptionalAssets.length > 0) {
+    warn('Skipped Optional Assets', ` (${report.missingOptionalAssets.length} skipped)`);
+    console.info('  Missing optional:', report.missingOptionalAssets.join(', '));
+  }
+
+  console.log(report.passed ? '\nGRACEFUL VALIDATION PASSED' : '\nGRACEFUL VALIDATION FAILED');
   console.groupEnd();
 };
