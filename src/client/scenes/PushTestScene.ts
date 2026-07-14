@@ -2,17 +2,19 @@ import { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { Player } from '../player/Player';
 import { PushableCube } from '../gameplay/PushableCube';
-import { AssetManager } from '../assets/AssetManager';
+import { LevelLoader } from '../gameplay/LevelLoader';
+import { LEVELS } from '../levels/levelDefinitions';
 import { EventBus } from '../core/EventBus';
 
 const GRID = 64;
 
 /**
- * PushableCube feel test: Player + Walls + 3 Cubes + Portal.
+ * Main game playtest scene utilizing modular LevelLoader and Grid systems.
  */
 export class PushTestScene extends Scene {
   private player: Player | undefined;
   private cubes: PushableCube[] = [];
+  private currentLevelIndex = 0;
 
   constructor() {
     super('PushTestScene');
@@ -22,89 +24,39 @@ export class PushTestScene extends Scene {
     EventBus.clear();
     PushableCube.clearRegistry();
 
-    const worldW = 18 * GRID;
-    const worldH = 12 * GRID;
-    const blocked = new Set<string>();
+    const levelDef = LEVELS[this.currentLevelIndex];
+    if (!levelDef) {
+      console.warn(`Level index ${this.currentLevelIndex} not found!`);
+      return;
+    }
+
+    const worldW = levelDef.gridWidth * GRID;
+    const worldH = levelDef.gridHeight * GRID;
 
     this.physics.world.setBounds(0, 0, worldW, worldH);
     this.cameras.main.setBounds(0, 0, worldW, worldH);
     this.cameras.main.setBackgroundColor(0x140e0c);
-    // Tiled floor background
-    for (let c = 0; c < 18; c += 1) {
-      for (let r = 0; r < 12; r += 1) {
-        const x = c * GRID + GRID / 2;
-        const y = r * GRID + GRID / 2;
-        const floor = AssetManager.createTile(x, y, 0, this);
-        floor.setDisplaySize(GRID, GRID);
-        floor.setDepth(0);
-      }
-    }
 
-    const walls = this.physics.add.staticGroup();
-    const markBlocked = (col: number, row: number) => {
-      blocked.add(`${col},${row}`);
-    };
+    // Load the handcrafted level using LevelLoader
+    const loaded = LevelLoader.load(this, levelDef, GRID);
+    this.player = loaded.player;
+    this.cubes = loaded.cubes;
 
-    const addWallCell = (col: number, row: number) => {
-      const x = col * GRID + GRID / 2;
-      const y = row * GRID + GRID / 2;
-      const wall = AssetManager.createTile(x, y, 12, this);
-      wall.setDisplaySize(GRID, GRID);
-      walls.add(wall);
-      markBlocked(col, row);
-    };
-
-    // Border
-    for (let c = 0; c < 18; c += 1) {
-      addWallCell(c, 0);
-      addWallCell(c, 11);
-    }
-    for (let r = 1; r < 11; r += 1) {
-      addWallCell(0, r);
-      addWallCell(17, r);
-    }
-
-    // Interior blockers
-    addWallCell(5, 4);
-    addWallCell(5, 5);
-    addWallCell(10, 7);
-    addWallCell(11, 7);
-    addWallCell(12, 3);
-    walls.refresh();
-
-    this.player = Player.create(this, {
-      x: 3 * GRID + GRID / 2,
-      y: 3 * GRID + GRID / 2,
-      config: { gridSize: GRID, moveSpeed: 220, cameraLerp: 0.1 },
-      blockedCells: blocked,
-    });
-    this.physics.add.collider(this.player.sprite, walls);
+    // Setup physics colliders
+    this.physics.add.collider(this.player.sprite, loaded.wallsGroup);
     this.player.bindCamera(this.cameras.main);
 
-    const cubeSpawns = [
-      { x: 7 * GRID + GRID / 2, y: 4 * GRID + GRID / 2, id: 'push_a' },
-      { x: 8 * GRID + GRID / 2, y: 6 * GRID + GRID / 2, id: 'push_b' },
-      { x: 12 * GRID + GRID / 2, y: 5 * GRID + GRID / 2, id: 'push_c' },
-    ];
-
-    this.cubes = cubeSpawns.map((spawn) =>
-      PushableCube.create(this, {
-        x: spawn.x,
-        y: spawn.y,
-        id: spawn.id,
-        gridSize: GRID,
-        blockedCells: blocked,
-      })
-    );
-
     for (const cube of this.cubes) {
+      // Player pushes cube
       this.physics.add.collider(this.player.sprite, cube.sprite, () => {
         const body = this.player?.sprite.body;
         if (body) {
           cube.handlePlayerCollide(body);
         }
       });
-      this.physics.add.collider(cube.sprite, walls);
+      // Cubes collide with walls
+      this.physics.add.collider(cube.sprite, loaded.wallsGroup);
+      // Cubes collide with other cubes
       for (const other of this.cubes) {
         if (other !== cube) {
           this.physics.add.collider(cube.sprite, other.sprite);
@@ -112,12 +64,8 @@ export class PushTestScene extends Scene {
       }
     }
 
-    const portal = AssetManager.createPortal(15 * GRID + GRID / 2, 9 * GRID + GRID / 2, this);
-    portal.setScale(0.1);
-    portal.setDepth(2);
-
     this.add
-      .text(16, 12, 'PUSH TEST  ·  Walk into cubes to shove one tile', {
+      .text(16, 12, `LEVEL: ${levelDef.name}  ·  Grid & LevelLoader Active`, {
         fontFamily: 'Arial',
         fontSize: '14px',
         color: '#f0d2b0',
@@ -128,7 +76,6 @@ export class PushTestScene extends Scene {
       .setDepth(3000);
 
     EventBus.onCubeMoved((payload) => {
-      // Keep a tiny debug pulse so plate compatibility is obvious in playtest.
       console.log(`[cubeMoved] ${payload.cubeId} → (${payload.toCol},${payload.toRow})`);
     });
 
