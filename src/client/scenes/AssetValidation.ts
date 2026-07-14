@@ -1,7 +1,6 @@
 import * as Phaser from 'phaser';
 import { Scene, GameObjects } from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
-import type { AssetSheetDef } from '../assets/types';
 import {
   printPipelineReport,
   validateAssetPipeline,
@@ -9,20 +8,21 @@ import {
 } from '../assets/validateAssetPipeline';
 
 type GalleryCard = {
-  sheet: AssetSheetDef;
+  key: string;
+  category: string;
   root: GameObjects.Container;
   sprite: GameObjects.Sprite | GameObjects.Rectangle;
-  hasTexture: boolean;
+  isAnim: boolean;
 };
 
-const CARD_WIDTH = 220;
-const CARD_HEIGHT = 220; // Reduced height since animation debug logs are removed
+const CARD_WIDTH = 200;
+const CARD_HEIGHT = 160;
 const COLS = 4;
 const GAP_X = 16;
-const GAP_Y = 28;
+const GAP_Y = 24;
 const PAD_X = 24;
-const CATEGORY_GAP = 48;
-const HUD_HEIGHT = 110;
+const CATEGORY_GAP = 32;
+const HUD_HEIGHT = 120;
 
 const RED = '#ff4d4d';
 const GREEN = '#5dffa0';
@@ -30,8 +30,7 @@ const MUTED = '#b8c0cc';
 const WHITE = '#f2f5fa';
 
 /**
- * Scrollable gallery that verifies every AssetManager sheet/frame
- * before gameplay scenes are allowed to run. Optimized for static sprite pipeline.
+ * Scrollable gallery verifying the new static sprite and animation sequence pipeline.
  */
 export class AssetValidation extends Scene {
   private gallery!: GameObjects.Container;
@@ -67,58 +66,66 @@ export class AssetValidation extends Scene {
   }
 
   private buildGallery(): void {
-    const sheets = [...AssetManager.getSheets()].sort((a, b) => {
-      const cat = a.category.localeCompare(b.category);
-      return cat !== 0 ? cat : a.name.localeCompare(b.name);
-    });
+    // 1. Group assets by category
+    const categories: Record<string, Array<{ key: string; frame: string; isAnim: boolean }>> = {};
 
-    let previousCategory = '';
-    let col = 0;
-    let y = HUD_HEIGHT + 24;
-
-    for (const sheet of sheets) {
-      if (sheet.category !== previousCategory) {
-        if (previousCategory !== '') {
-          y += CARD_HEIGHT + CATEGORY_GAP;
-          col = 0;
-        }
-
-        const header = this.add
-          .text(PAD_X, y, sheet.category.toUpperCase(), {
-            fontFamily: 'Arial',
-            fontSize: '18px',
-            color: '#ffb347',
-            fontStyle: 'bold',
-          })
-          .setOrigin(0, 0);
-        this.gallery.add(header);
-        y += 28;
-        previousCategory = sheet.category;
+    for (const asset of AssetManager.getStaticAssets()) {
+      if (!categories[asset.category]) {
+        categories[asset.category] = [];
       }
-
-      if (col >= COLS) {
-        col = 0;
-        y += CARD_HEIGHT + GAP_Y;
-      }
-
-      const x = PAD_X + col * (CARD_WIDTH + GAP_X);
-      this.gallery.add(this.createCard(sheet, x, y));
-      col += 1;
+      categories[asset.category]?.push({ key: asset.key, frame: asset.key, isAnim: false });
     }
 
-    this.contentHeight = y + CARD_HEIGHT + 80;
+    for (const anim of AssetManager.getAnimAssets()) {
+      if (!categories[anim.category]) {
+        categories[anim.category] = [];
+      }
+      let startIndex = 1;
+      if (anim.key === 'cube_move') startIndex = 6;
+      else if (anim.key === 'cube_jump') startIndex = 11;
+      else if (anim.key === 'cube_charged') startIndex = 16;
+      else if (anim.key === 'cube_damage') startIndex = 21;
+      else if (anim.key === 'cube_destroy') startIndex = 26;
+      
+      const firstFrame = `${anim.prefix}${String(startIndex).padStart(2, '0')}`;
+      categories[anim.category]?.push({ key: anim.key, frame: firstFrame, isAnim: true });
+    }
+
+    let y = HUD_HEIGHT + 24;
+
+    for (const [catName, items] of Object.entries(categories)) {
+      const header = this.add
+        .text(PAD_X, y, catName, {
+          fontFamily: 'Arial',
+          fontSize: '16px',
+          color: '#ffb347',
+          fontStyle: 'bold',
+        })
+        .setOrigin(0, 0);
+      this.gallery.add(header);
+      y += 24;
+
+      let col = 0;
+      for (const item of items) {
+        if (col >= COLS) {
+          col = 0;
+          y += CARD_HEIGHT + GAP_Y;
+        }
+
+        const x = PAD_X + col * (CARD_WIDTH + GAP_X);
+        const card = this.createCard(item.key, item.frame, item.isAnim, x, y);
+        this.gallery.add(card);
+        col += 1;
+      }
+      y += CARD_HEIGHT + CATEGORY_GAP;
+    }
+
+    this.contentHeight = y + 40;
   }
 
-  private createCard(sheet: AssetSheetDef, x: number, y: number): GameObjects.Container {
-    const firstFrameName = sheet.loadMode === 'image'
-      ? sheet.textureKey
-      : AssetManager.getDescriptiveName(sheet.name, 0, sheet.animations);
-    
-    const hasTexture = this.textures.exists(firstFrameName);
-    const frameInvalid = this.report.invalidFrameSizes.some((item) =>
-      item.startsWith(`${sheet.name}:`)
-    );
-    const hasError = !hasTexture || frameInvalid;
+  private createCard(key: string, frame: string, isAnim: boolean, x: number, y: number): GameObjects.Container {
+    const hasTexture = this.textures.exists(frame);
+    const hasError = !hasTexture || (isAnim && !this.anims.exists(key));
 
     const root = this.add.container(x, y);
     root.add(
@@ -130,23 +137,26 @@ export class AssetValidation extends Scene {
 
     let sprite: GameObjects.Sprite | GameObjects.Rectangle;
     if (hasTexture) {
-      const preview = this.add.sprite(CARD_WIDTH / 2, 70, firstFrameName);
+      const preview = this.add.sprite(CARD_WIDTH / 2, 54, frame);
       const scale = Math.min(
-        (CARD_WIDTH - 24) / Math.max(preview.width, 1),
-        90 / Math.max(preview.height, 1),
+        (CARD_WIDTH - 20) / Math.max(preview.width, 1),
+        70 / Math.max(preview.height, 1),
         1
       );
       preview.setScale(scale);
+      if (isAnim && this.anims.exists(key)) {
+        preview.play(key);
+      }
       sprite = preview;
     } else {
       sprite = this.add
-        .rectangle(CARD_WIDTH / 2, 70, CARD_WIDTH - 24, 90, 0x3a1010)
+        .rectangle(CARD_WIDTH / 2, 54, CARD_WIDTH - 20, 70, 0x3a1010)
         .setStrokeStyle(2, 0xff4d4d);
       root.add(
         this.add
-          .text(CARD_WIDTH / 2, 70, 'MISSING\nTEXTURE', {
+          .text(CARD_WIDTH / 2, 54, 'MISSING\nFILE', {
             fontFamily: 'Arial',
-            fontSize: '14px',
+            fontSize: '12px',
             color: RED,
             align: 'center',
           })
@@ -155,44 +165,37 @@ export class AssetValidation extends Scene {
     }
     root.add(sprite);
 
+    // Label name
     root.add(
       this.add
-        .text(CARD_WIDTH / 2, 130, sheet.name, {
+        .text(CARD_WIDTH / 2, 104, this.truncate(key, 24), {
           fontFamily: 'Arial',
-          fontSize: '14px',
+          fontSize: '13px',
           color: hasError ? RED : WHITE,
           fontStyle: 'bold',
         })
         .setOrigin(0.5, 0)
     );
 
-    const texSize = hasTexture ? this.getTextureSizeLabel(firstFrameName) : 'n/a';
+    // Label dimensions and category info
+    const texSize = hasTexture ? this.getTextureSizeLabel(frame) : 'n/a';
     root.add(
       this.add
-        .text(
-          12,
-          152,
-          [
-            `Frames: ${sheet.frames}`,
-            `Dim: ${texSize}`,
-            `Mode: ${sheet.loadMode}`,
-            `Status: ${hasError ? 'Failed' : 'Valid'}`
-          ].join('\n'),
-          {
-            fontFamily: 'Arial',
-            fontSize: '11px',
-            color: MUTED,
-            lineSpacing: 2,
-          }
-        )
+        .text(12, 122, `dim: ${texSize}\ntype: ${isAnim ? 'anim' : 'static'}`, {
+          fontFamily: 'Arial',
+          fontSize: '11px',
+          color: MUTED,
+          lineSpacing: 1,
+        })
         .setOrigin(0, 0)
     );
 
     this.cards.push({
-      sheet,
+      key,
+      category: isAnim ? 'anim' : 'static',
       root,
       sprite,
-      hasTexture,
+      isAnim,
     });
 
     return root;
@@ -206,7 +209,7 @@ export class AssetValidation extends Scene {
       .setDepth(1000);
 
     this.add
-      .text(16, 10, 'ASSET VALIDATION (STATIC)', {
+      .text(16, 10, 'PRODUCTION ASSET CHECKLIST', {
         fontFamily: 'Arial',
         fontSize: '20px',
         color: WHITE,
@@ -219,10 +222,10 @@ export class AssetValidation extends Scene {
       .text(
         16,
         36,
-        this.passed ? '✓ VALIDATION PASSED' : '✗ VALIDATION FAILED — missing frame textures',
+        this.passed ? '✓ ALL CHECKS PASSED — static pipeline active' : '✗ PIPELINE VERIFICATION FAILED',
         {
           fontFamily: 'Arial',
-          fontSize: '14px',
+          fontSize: '13px',
           color: this.passed ? GREEN : RED,
           fontStyle: 'bold',
         }
@@ -232,22 +235,22 @@ export class AssetValidation extends Scene {
 
     const lines = [
       {
-        label: `✓ Assets Loaded (${this.report.assetsLoaded.length})`,
-        ok: this.report.missingAssets.length === 0 && this.report.assetsLoaded.length > 0,
-      },
-      {
-        label: `✓ Missing Assets (${this.report.missingAssets.length})`,
+        label: `✓ Files Loaded: ${this.report.assetsLoadedCount}`,
         ok: this.report.missingAssets.length === 0,
       },
       {
-        label: `✓ Invalid Frames (${this.report.invalidFrameSizes.length})`,
-        ok: this.report.invalidFrameSizes.length === 0,
+        label: `✓ Missing Assets: ${this.report.missingAssets.length}`,
+        ok: this.report.missingAssets.length === 0,
+      },
+      {
+        label: `✓ Invalid Frames: ${this.report.invalidDimensions.length}`,
+        ok: this.report.invalidDimensions.length === 0,
       },
     ];
 
     for (const [index, line] of lines.entries()) {
       this.add
-        .text(16 + index * 220, 64, line.label, {
+        .text(16 + index * 200, 60, line.label, {
           fontFamily: 'Arial',
           fontSize: '12px',
           color: line.ok ? GREEN : RED,
@@ -260,7 +263,7 @@ export class AssetValidation extends Scene {
       .text(
         0,
         0,
-        this.passed ? 'Continue → Push Test' : 'Blocked until all checks pass',
+        this.passed ? 'Continue → Start Game' : 'Blocked (Fix missing textures)',
         {
           fontFamily: 'Arial',
           fontSize: '14px',
@@ -337,5 +340,9 @@ export class AssetValidation extends Scene {
     const width = 'width' in source ? Number(source.width) : 0;
     const height = 'height' in source ? Number(source.height) : 0;
     return `${width}x${height}`;
+  }
+
+  private truncate(value: string, max: number): string {
+    return value.length <= max ? value : `${value.slice(0, max - 1)}…`;
   }
 }
