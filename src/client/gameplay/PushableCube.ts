@@ -89,6 +89,7 @@ export class PushableCube {
       ? scene.physics.add.sprite(x, y, sheet.textureKey, 'cube_0')
       : scene.physics.add.sprite(x, y, sheet.textureKey);
     sprite.setScale(SCALE);
+    sprite.setOrigin(0.5, 0.72);
 
     return new PushableCube(scene, sprite, {
       blockedCells: options.blockedCells,

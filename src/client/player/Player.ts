@@ -71,6 +71,7 @@ export class Player {
       : scene.physics.add.sprite(options.x, options.y, sheet.textureKey);
 
     sprite.setScale(config.displayScale);
+    sprite.setOrigin(0.5, 0.72);
     AssetManager.playCube(sprite, 'idle');
 
     return new Player(scene, sprite, config);

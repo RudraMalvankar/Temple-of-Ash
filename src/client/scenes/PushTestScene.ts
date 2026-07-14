@@ -29,7 +29,16 @@ export class PushTestScene extends Scene {
     this.physics.world.setBounds(0, 0, worldW, worldH);
     this.cameras.main.setBounds(0, 0, worldW, worldH);
     this.cameras.main.setBackgroundColor(0x140e0c);
-    this.add.rectangle(worldW / 2, worldH / 2, worldW, worldH, 0x1a1412).setDepth(0);
+    // Tiled floor background
+    for (let c = 0; c < 18; c += 1) {
+      for (let r = 0; r < 12; r += 1) {
+        const x = c * GRID + GRID / 2;
+        const y = r * GRID + GRID / 2;
+        const floor = AssetManager.createTile(x, y, 0, this);
+        floor.setDisplaySize(GRID, GRID);
+        floor.setDepth(0);
+      }
+    }
 
     const walls = this.physics.add.staticGroup();
     const markBlocked = (col: number, row: number) => {
@@ -39,7 +48,8 @@ export class PushTestScene extends Scene {
     const addWallCell = (col: number, row: number) => {
       const x = col * GRID + GRID / 2;
       const y = row * GRID + GRID / 2;
-      const wall = this.add.rectangle(x, y, GRID, GRID, 0x2a2420).setStrokeStyle(2, 0x3d342e);
+      const wall = AssetManager.createTile(x, y, 12, this);
+      wall.setDisplaySize(GRID, GRID);
       walls.add(wall);
       markBlocked(col, row);
     };
@@ -102,7 +112,7 @@ export class PushTestScene extends Scene {
     }
 
     const portal = AssetManager.createPortal(15 * GRID + GRID / 2, 9 * GRID + GRID / 2, this);
-    portal.setScale(0.32);
+    portal.setScale(0.1);
     portal.setDepth(2);
 
     this.add
