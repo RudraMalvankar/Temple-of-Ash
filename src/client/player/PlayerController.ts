@@ -1,12 +1,12 @@
-import type { Scene, Physics } from 'phaser';
+import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { EventBus } from '../core/EventBus';
 import type { PlayerConfig } from './PlayerConfig';
 import type { InputVector } from './PlayerInput';
+import { PushableCube } from '../gameplay/PushableCube';
 import {
   PlayerStateId,
   createInitialPlayerState,
-  resolveMovementState,
   type PlayerRuntimeState,
   type PlayerStateIdValue,
 } from './PlayerState';
@@ -14,68 +14,74 @@ import {
 type ArcadeSprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
 /**
- * Applies smoothed velocity, tracks grid cells, detects wall impacts.
+ * Grid-locked step-by-step movement controller for the player cube.
+ * Supports Sokoban-style interaction with PushableCubes and wall blockages.
  */
 export class PlayerController {
   readonly state: PlayerRuntimeState;
-  private previousSpeed = 0;
-  private wasMoving = false;
+  private moving = false;
+  private moveTween: Phaser.Tweens.Tween | undefined;
 
   constructor(
     private readonly scene: Scene,
     private readonly sprite: ArcadeSprite,
-    private readonly config: PlayerConfig
+    private readonly config: PlayerConfig,
+    private readonly blockedCells?: Set<string>
   ) {
     this.state = createInitialPlayerState(sprite.x, sprite.y, config.gridSize);
     this.configureBody();
   }
 
   /**
-   * @returns true when a stop-squash should play (transition into idle).
+   * @returns dummy state to match animator/game loop expectation
    */
-  update(deltaMs: number, input: InputVector): { shouldSquash: boolean; impacted: boolean } {
-    const dt = deltaMs / 1000;
-    this.applyMovement(dt, input);
-
-    const body = this.sprite.body;
-    let impacted = false;
-    if (body) {
-      impacted = this.detectImpact(body);
-      this.state.velocityX = body.velocity.x;
-      this.state.velocityY = body.velocity.y;
-      this.state.speed = Math.hypot(body.velocity.x, body.velocity.y);
-      this.state.wasBlockedX = body.blocked.left || body.blocked.right;
-      this.state.wasBlockedY = body.blocked.up || body.blocked.down;
+  update(_deltaMs: number, input: InputVector): { shouldSquash: boolean; impacted: boolean } {
+    if (this.moving) {
+      return { shouldSquash: false, impacted: false };
     }
 
-    this.state.inputX = input.x;
-    this.state.inputY = input.y;
+    if (input.active) {
+      // Determine dominant cardinal direction of input
+      let dirX = 0;
+      let dirY = 0;
+      if (Math.abs(input.x) > Math.abs(input.y)) {
+        dirX = Math.sign(input.x);
+      } else {
+        dirY = Math.sign(input.y);
+      }
 
-    const nextState = resolveMovementState(
-      this.state.speed,
-      input.active,
-      this.config.rollSpeedThreshold
-    );
-    this.transitionState(nextState);
-    this.updateGridCell();
+      if (dirX !== 0 || dirY !== 0) {
+        const toCol = this.state.gridCol + dirX;
+        const toRow = this.state.gridRow + dirY;
 
-    const shouldSquash = this.wasMoving && nextState === PlayerStateId.Idle;
-    this.wasMoving = nextState === PlayerStateId.Moving || nextState === PlayerStateId.Rolling;
-    this.previousSpeed = this.state.speed;
+        let canMove = true;
 
-    if (this.state.speed > 1) {
-      EventBus.emitMove({
-        x: this.sprite.x,
-        y: this.sprite.y,
-        vx: this.state.velocityX,
-        vy: this.state.velocityY,
-        speed: this.state.speed,
-      });
-    } else if (shouldSquash) {
-      EventBus.emitStop({ x: this.sprite.x, y: this.sprite.y });
+        // Check wall boundaries
+        if (this.blockedCells && this.blockedCells.has(`${toCol},${toRow}`)) {
+          canMove = false;
+        }
+
+        // Check if cell is occupied by a pushable block
+        if (canMove) {
+          const cube = PushableCube.instances.find(
+            (c) => c.getGridCell().col === toCol && c.getGridCell().row === toRow
+          );
+          if (cube) {
+            // Attempt to push the block in the direction of player movement
+            const pushed = cube.tryPush(dirX, dirY);
+            if (!pushed) {
+              canMove = false;
+            }
+          }
+        }
+
+        if (canMove) {
+          this.startSlide(toCol, toRow, dirX, dirY);
+        }
+      }
     }
 
-    return { shouldSquash, impacted };
+    return { shouldSquash: false, impacted: false };
   }
 
   getGridPosition(): { col: number; row: number; worldX: number; worldY: number } {
@@ -87,11 +93,19 @@ export class PlayerController {
     };
   }
 
-  /** Future puzzles: snap the body to the center of the current grid cell. */
   snapToGrid(): void {
     const { worldX, worldY } = this.getGridPosition();
     this.sprite.setPosition(worldX, worldY);
-    this.sprite.body.stop();
+    if (this.sprite.body) {
+      this.sprite.body.stop();
+    }
+  }
+
+  destroy(): void {
+    if (this.moveTween) {
+      this.moveTween.stop();
+      this.moveTween = undefined;
+    }
   }
 
   private configureBody(): void {
@@ -104,65 +118,56 @@ export class PlayerController {
     this.sprite.setDepth(10);
   }
 
-  private applyMovement(dt: number, input: InputVector): void {
-    const body = this.sprite.body;
-    const targetX = input.active ? input.x * this.config.moveSpeed : 0;
-    const targetY = input.active ? input.y * this.config.moveSpeed : 0;
-    const rate = input.active ? this.config.acceleration : this.config.deceleration;
+  private startSlide(toCol: number, toRow: number, dirX: number, dirY: number): void {
+    this.moving = true;
+    this.transitionState(PlayerStateId.Moving);
 
-    let vx = this.approach(body.velocity.x, targetX, rate * dt);
-    let vy = this.approach(body.velocity.y, targetY, rate * dt);
+    const toX = toCol * this.config.gridSize + this.config.gridSize / 2;
+    const toY = toRow * this.config.gridSize + this.config.gridSize / 2;
 
-    if (this.config.normalizeDiagonal && input.active && input.x !== 0 && input.y !== 0) {
-      const speed = Math.hypot(vx, vy);
-      if (speed > this.config.moveSpeed) {
-        const scale = this.config.moveSpeed / speed;
-        vx *= scale;
-        vy *= scale;
-      }
-    }
+    // Movement duration matches Sokoban style slide feel
+    const duration = 200; 
 
-    body.setVelocity(vx, vy);
-  }
+    // Generate speed metrics for event bus integration
+    const speed = this.config.gridSize / (duration / 1000);
+    this.state.velocityX = dirX * speed;
+    this.state.velocityY = dirY * speed;
+    this.state.speed = speed;
 
-  private approach(current: number, target: number, maxDelta: number): number {
-    if (current < target) {
-      return Math.min(current + maxDelta, target);
-    }
-    if (current > target) {
-      return Math.max(current - maxDelta, target);
-    }
-    return target;
-  }
+    this.moveTween = this.scene.tweens.add({
+      targets: this.sprite,
+      x: toX,
+      y: toY,
+      duration: duration,
+      ease: 'Sine.Out',
+      onUpdate: () => {
+        EventBus.emitMove({
+          x: this.sprite.x,
+          y: this.sprite.y,
+          vx: this.state.velocityX,
+          vy: this.state.velocityY,
+          speed: this.state.speed,
+        });
+      },
+      onComplete: () => {
+        this.sprite.setPosition(toX, toY);
+        if (this.sprite.body) {
+          this.sprite.body.reset(toX, toY);
+        }
+        this.state.gridCol = toCol;
+        this.state.gridRow = toRow;
+        this.moving = false;
+        this.moveTween = undefined;
 
-  private detectImpact(body: Physics.Arcade.Body): boolean {
-    const blockedNowX = body.blocked.left || body.blocked.right;
-    const blockedNowY = body.blocked.up || body.blocked.down;
-    const hitX = blockedNowX && !this.state.wasBlockedX;
-    const hitY = blockedNowY && !this.state.wasBlockedY;
+        this.state.velocityX = 0;
+        this.state.velocityY = 0;
+        this.state.speed = 0;
+        this.transitionState(PlayerStateId.Idle);
 
-    if (!(hitX || hitY)) {
-      return false;
-    }
-    if (this.previousSpeed < this.config.impactSpeedThreshold) {
-      return false;
-    }
-
-    const normalX = body.blocked.left ? 1 : body.blocked.right ? -1 : 0;
-    const normalY = body.blocked.up ? 1 : body.blocked.down ? -1 : 0;
-
-    EventBus.emitImpact({
-      speed: this.previousSpeed,
-      normalX,
-      normalY,
+        EventBus.emitGridCell({ col: toCol, row: toRow });
+        EventBus.emitStop({ x: toX, y: toY });
+      },
     });
-
-    this.scene.cameras.main.shake(
-      this.config.impactShake.duration,
-      this.config.impactShake.intensity
-    );
-
-    return true;
   }
 
   private transitionState(next: PlayerStateIdValue): void {
@@ -172,16 +177,5 @@ export class PlayerController {
     const from = this.state.id;
     this.state.id = next;
     EventBus.emitState({ from, to: next });
-  }
-
-  private updateGridCell(): void {
-    const col = Math.floor(this.sprite.x / this.config.gridSize);
-    const row = Math.floor(this.sprite.y / this.config.gridSize);
-    if (col === this.state.gridCol && row === this.state.gridRow) {
-      return;
-    }
-    this.state.gridCol = col;
-    this.state.gridRow = row;
-    EventBus.emitGridCell({ col, row });
   }
 }

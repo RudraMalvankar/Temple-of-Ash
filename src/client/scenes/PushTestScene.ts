@@ -76,6 +76,7 @@ export class PushTestScene extends Scene {
       x: 3 * GRID + GRID / 2,
       y: 3 * GRID + GRID / 2,
       config: { gridSize: GRID, moveSpeed: 220, cameraLerp: 0.1 },
+      blockedCells: blocked,
     });
     this.physics.add.collider(this.player.sprite, walls);
     this.player.bindCamera(this.cameras.main);

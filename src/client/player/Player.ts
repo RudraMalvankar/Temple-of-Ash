@@ -13,6 +13,7 @@ export type PlayerCreateOptions = {
   x: number;
   y: number;
   config?: Partial<PlayerConfig>;
+  blockedCells?: Set<string>;
 };
 
 /**
@@ -28,11 +29,11 @@ export class Player {
   private readonly animator: PlayerAnimator;
   private destroyed = false;
 
-  private constructor(scene: Scene, sprite: ArcadeSprite, config: PlayerConfig) {
+  private constructor(scene: Scene, sprite: ArcadeSprite, config: PlayerConfig, blockedCells?: Set<string>) {
     this.sprite = sprite;
     this.config = config;
     this.input = new PlayerInput(scene, config.joystick);
-    this.controller = new PlayerController(scene, sprite, config);
+    this.controller = new PlayerController(scene, sprite, config, blockedCells);
     this.animator = new PlayerAnimator(scene, sprite, config);
   }
 
@@ -74,7 +75,7 @@ export class Player {
     sprite.setOrigin(0.5, 0.72);
     AssetManager.playCube(sprite, 'idle');
 
-    return new Player(scene, sprite, config);
+    return new Player(scene, sprite, config, options.blockedCells);
   }
 
   update(deltaMs: number): void {
@@ -119,6 +120,7 @@ export class Player {
     }
     this.destroyed = true;
     this.input.destroy();
+    this.controller.destroy();
     this.animator.destroy();
     this.sprite.destroy();
   }
