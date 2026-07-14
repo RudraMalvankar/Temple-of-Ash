@@ -285,7 +285,7 @@ export class AssetValidation extends Scene {
 
     if (this.passed) {
       this.actionText.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
-        this.scene.start('PushTestScene');
+        this.scene.start('MainMenu');
       });
     }
   }
