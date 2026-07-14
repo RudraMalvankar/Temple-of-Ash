@@ -8,6 +8,11 @@ export {
   findEmptyFrames,
   listPossibleSizes,
 } from './SpriteSheetAnalyzer';
+export {
+  printPipelineReport,
+  validateAssetPipeline,
+} from './validateAssetPipeline';
+export type { PipelineValidationReport, ValidationIssue } from './validateAssetPipeline';
 export type {
   AnalyzedSheet,
   AnimationDef,

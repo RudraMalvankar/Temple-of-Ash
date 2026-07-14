@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-14T10:57:44.332Z",
+  "generatedAt": "2026-07-14T11:25:11.607Z",
   "basePath": "assets",
   "sheets": [
     {
@@ -304,7 +304,7 @@
       "category": "crystal",
       "textureKey": "pressure_plate_crystal",
       "loadMode": "grid",
-      "frameWidth": 140,
+      "frameWidth": 136,
       "frameHeight": 160,
       "columns": 5,
       "rows": 2,
@@ -313,13 +313,13 @@
       "direction": "horizontal",
       "detectionStatus": "override",
       "margin": {
-        "left": 820,
+        "left": 780,
         "top": 80,
         "right": 40,
         "bottom": 480
       },
       "spacing": {
-        "x": 12,
+        "x": 10,
         "y": 20
       },
       "animations": [

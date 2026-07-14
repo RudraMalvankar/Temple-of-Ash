@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "assets:analyze": "tsx scripts/generate-assets-json.ts",
+    "assets:validate": "tsx scripts/validate-frame-layouts.ts",
     "build": "vite build",
     "deploy": "npm run type-check && npm run lint && devvit upload",
     "dev": "devvit playtest",

@@ -24,6 +24,6 @@ export class Preloader extends Scene {
 
   create() {
     AssetManager.createAnimations(this);
-    this.scene.start('MainMenu');
+    this.scene.start('AssetValidation');
   }
 }

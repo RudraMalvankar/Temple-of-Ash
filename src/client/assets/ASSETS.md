@@ -96,20 +96,31 @@ Needs confirmation.
 
 Curated overrides (`detectionStatus: 'override'`) silence failure for known pack sheets while still logging that an override was applied.
 
-## Regenerating assets.json
+## Asset Validation Scene
 
-```bash
-npm run assets:analyze
+After preload, the game boots into **`AssetValidation`** instead of gameplay.
+
+It will:
+
+1. Run `validateAssetPipeline(scene)` against every catalog sheet
+2. Render a scrollable gallery (wheel / drag) grouped by category
+3. Auto-play every declared animation and cycle multi-anim assets
+4. Show name, frame count, FPS, texture size, and animation names
+5. Mark missing textures / animations / invalid frames in red
+6. Print the console checklist:
+
+```
+✓ Assets Loaded
+✓ Animations Loaded
+✓ Missing Assets
+✓ Missing Animations
+✓ Invalid Frame Sizes
 ```
 
-Output:
+Main Menu stays blocked until `report.passed === true`.
 
-- `public/assets/assets.json` — full manifest (sheets + reports)
-- `scripts/asset-catalog.json` — sheet catalog snapshot for tooling
+Offline layout check (no browser):
 
-## Reusing assets
-
-- Multiple logical assets may share one `textureKey` / PNG (e.g. torch + pillar).
-- Prefer `AssetManager.getSheet('torch')` over hardcoding paths.
-- Prefer `AssetManager.getAnimation('torch_idle')` / `playAnimation(sprite, key)` for state changes.
-- For a future game, keep this folder (`src/client/assets`) and swap `layoutOverrides` + `public/assets`.
+```bash
+npm run assets:validate
+```
