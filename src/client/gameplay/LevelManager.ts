@@ -43,6 +43,10 @@ export class LevelManager {
   private static originalSpawnCol = 0;
   private static originalSpawnRow = 0;
 
+  static getActiveLevel(): LoadedLevel | null {
+    return LevelManager.activeLevel;
+  }
+
   private static verifyObject(sprite: Phaser.GameObjects.Sprite | Phaser.GameObjects.GameObject, name: string): void {
     if (!sprite) {
       console.error(`✗ ${name}: Failed to spawn (null/undefined)`);

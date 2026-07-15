@@ -62,7 +62,10 @@ export class PushTestScene extends Scene {
   }
 
   override update(_time: number, delta: number): void {
-    if (!this.player) return;
+    const active = LevelManager.getActiveLevel();
+    if (!active) return;
+    
+    this.player = active.player;
     this.player.update(delta);
 
     const pos = this.player.getGridPosition();
