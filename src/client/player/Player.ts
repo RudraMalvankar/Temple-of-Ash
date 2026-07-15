@@ -70,6 +70,7 @@ export class Player {
 
     sprite.setDisplaySize(config.gridSize, config.gridSize);
     sprite.setOrigin(0.5, 0.5);
+    sprite.setDepth(10);
 
     return new Player(scene, sprite, config, options.blockedCells);
   }

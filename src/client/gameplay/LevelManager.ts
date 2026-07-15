@@ -129,6 +129,7 @@ export class LevelManager {
           case 'W': {
             const wall = AssetManager.createTile(x, y, 12, scene);
             wall.setDisplaySize(cellSize, cellSize);
+            wall.setDepth(2);
             LevelManager.wallsGroup.add(wall);
             grid.markBlocked(c, r, true);
             break;
@@ -229,6 +230,7 @@ export class LevelManager {
             const torch = AssetManager.createTorch(x, y, scene);
             torch.setDisplaySize(cellSize, cellSize);
             torch.setOrigin(0.5, 0.5);
+            torch.setDepth(3);
             break;
           }
           default:
@@ -273,7 +275,6 @@ export class LevelManager {
 
     // Physics setup
     scene.physics.add.collider(player.sprite, LevelManager.wallsGroup);
-    player.bindCamera(scene.cameras.main);
 
     for (const cube of cubes) {
       scene.physics.add.collider(player.sprite, cube.sprite, () => {

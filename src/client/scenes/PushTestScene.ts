@@ -64,6 +64,19 @@ export class PushTestScene extends Scene {
   };
 
   private onResize = (): void => {
-    this.cameras.resize(this.scale.width, this.scale.height);
+    const { width, height } = this.scale;
+    this.cameras.resize(width, height);
+
+    const levelDef = LEVELS[this.currentLevelIndex];
+    if (levelDef) {
+      const worldW = levelDef.gridWidth * GRID;
+      const worldH = levelDef.gridHeight * GRID;
+      const zoomX = width / (worldW + 64);
+      const zoomY = height / (worldH + 64);
+      const zoom = Math.min(zoomX, zoomY, 1.5);
+
+      this.cameras.main.setZoom(zoom);
+      this.cameras.main.centerOn(worldW / 2, worldH / 2);
+    }
   };
 }
