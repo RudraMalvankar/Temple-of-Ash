@@ -7,7 +7,7 @@ export type LevelDefinition = {
   // 'W' = Wall
   // '.' = Floor
   // 'P' = Player spawn point
-  // 'C' = Pushable cube (wooden crate)
+  // 'C' = Pushable crate (wooden crate)
   // 'T' = Torch
   // 'D' = Door
   // 'O' = Pressure plate
@@ -24,41 +24,110 @@ export type LevelDefinition = {
 export const LEVELS: LevelDefinition[] = [
   {
     id: 1,
-    name: "Dungeon Entry",
-    gridWidth: 10,
-    gridHeight: 9,
+    name: "1. Dungeon Entry",
+    gridWidth: 8,
+    gridHeight: 7,
     layout: [
-      "W W W W W W W W W W",
-      "W . . . . . . . . W",
-      "W . T . . . . T . W",
-      "W . . . . . . . . W",
-      "W . P . C . . O . W",
-      "W . . . . . . . . W",
-      "W . T . . . . T . W",
-      "W . . . . X . . . W",
-      "W W W W W W W W W W"
+      "W W W W W W W W",
+      "W . . . . . . W",
+      "W . T . . T . W",
+      "W . P . . X . W",
+      "W . . . . . . W",
+      "W . T . . T . W",
+      "W W W W W W W W"
     ]
   },
   {
     id: 2,
-    name: "Lava Crossing",
-    gridWidth: 12,
-    gridHeight: 9,
+    name: "2. Crate Pushing",
+    gridWidth: 9,
+    gridHeight: 7,
     layout: [
-      "W W W W W W W W W W W W",
-      "W . . . . . T . . . . W",
-      "W . P . . . . . . Y . W",
-      "W W W W L L L L W W W W",
-      "W . . W L L L L W . . W",
-      "W . O B . . . . B O . W",
-      "W . . W L L L L W . . W",
-      "W . C . . X . . . C . W",
-      "W W W W W W W W W W W W"
+      "W W W W W W W W W",
+      "W . . . . . . . W",
+      "W . P . C . X . W",
+      "W . . . . . . . W",
+      "W W W W W W W W W"
     ]
   },
   {
     id: 3,
-    name: "Ancient Chamber Gates",
+    name: "3. Pressure Plates",
+    gridWidth: 10,
+    gridHeight: 7,
+    layout: [
+      "W W W W W W W W W W",
+      "W . . . . . . . . W",
+      "W . P . C . O . X W",
+      "W . . . . . . . . W",
+      "W W W W W W W W W W"
+    ]
+  },
+  {
+    id: 4,
+    name: "4. Doors & Gates",
+    gridWidth: 11,
+    gridHeight: 7,
+    layout: [
+      "W W W W W W W W W W W",
+      "W . . . . . . . . . W",
+      "W . P . C . O D . X W",
+      "W . . . . . . . . . W",
+      "W W W W W W W W W W W"
+    ]
+  },
+  {
+    id: 5,
+    name: "5. Lava Pools",
+    gridWidth: 12,
+    gridHeight: 9,
+    layout: [
+      "W W W W W W W W W W W W",
+      "W . . . . . . . . . . W",
+      "W . P . . . . . . . . W",
+      "W W W W L L L L W W W W",
+      "W . . W L L L L W . . W",
+      "W . C . . . . . . O . W",
+      "W . . W L L L L W . . W",
+      "W . . . . X . . . . . W",
+      "W W W W W W W W W W W W"
+    ]
+  },
+  {
+    id: 6,
+    name: "6. Laser Beams",
+    gridWidth: 12,
+    gridHeight: 9,
+    layout: [
+      "W W W W W W W W W W W W",
+      "W . . . . . . . . . . W",
+      "W . P . C . . . . X . W",
+      "W W W W H H H H W W W W",
+      "W . . . . . . . . . . W",
+      "W . . . . O . . . . . W",
+      "W W W W W W W W W W W W"
+    ]
+  },
+  {
+    id: 7,
+    name: "7. Bridge Puzzles",
+    gridWidth: 12,
+    gridHeight: 9,
+    layout: [
+      "W W W W W W W W W W W W",
+      "W . . . . . . . . . . W",
+      "W . P . . C . . . Y . W",
+      "W W W W L L L L W W W W",
+      "W . . W L L L L W . . W",
+      "W . O B . . . . B O . W",
+      "W . . W L L L L W . . W",
+      "W . . . . X . . . . . W",
+      "W W W W W W W W W W W W"
+    ]
+  },
+  {
+    id: 8,
+    name: "8. Temple of Ash",
     gridWidth: 14,
     gridHeight: 10,
     layout: [

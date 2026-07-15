@@ -58,6 +58,14 @@ export class PlayerInput {
           right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
         }
       : undefined;
+    if (keyboard) {
+      keyboard.addCapture([
+        Phaser.Input.Keyboard.KeyCodes.W,
+        Phaser.Input.Keyboard.KeyCodes.A,
+        Phaser.Input.Keyboard.KeyCodes.S,
+        Phaser.Input.Keyboard.KeyCodes.D
+      ]);
+    }
 
     this.joystickOriginX = this.marginLeft;
     this.joystickOriginY = scene.scale.height - this.marginBottom;
