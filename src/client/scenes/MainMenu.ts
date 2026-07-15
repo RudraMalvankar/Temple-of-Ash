@@ -1,6 +1,11 @@
 import { Scene, GameObjects } from 'phaser';
+import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import { SoundEffects } from '../core/SoundEffects';
+import { ProgressionManager } from '../core/ProgressionManager';
+import { PushTestScene } from './PushTestScene';
+import { AmbientMusic } from '../core/AmbientMusic';
+import { SoundManager } from '../core/SoundManager';
 
 const ORANGE = '#ff7700';
 const ORANGE_GLOW = '#ffb347';
@@ -11,7 +16,7 @@ export class MainMenu extends Scene {
   private darkOverlay!: GameObjects.Rectangle;
   private titleContainer!: GameObjects.Container;
   private menuObjects: (GameObjects.Graphics | GameObjects.Text | GameObjects.Rectangle)[] = [];
-  private modalObjects: (GameObjects.Rectangle | GameObjects.Graphics | GameObjects.Text)[] = [];
+  private modalObjects: (GameObjects.Rectangle | GameObjects.Graphics | GameObjects.Text | GameObjects.Container)[] = [];
   private decorations: GameObjects.GameObject[] = [];
   private playerPreview: GameObjects.Sprite | null = null;
 
@@ -32,17 +37,23 @@ export class MainMenu extends Scene {
     // 3. Decorations (Stone Door, Portal, Torch, Pillars)
     this.createDecorations();
 
-    // 4. Title Text & Player Preview
+    // 4. Fire Particles
+    this.createFireParticles();
+
+    // 5. Title Text & Player Preview
     this.createTitleAndPlayer();
 
-    // 5. Menu Buttons Panel (Placed directly on Scene for absolute input safety)
+    // 6. Menu Buttons Panel (Placed directly on Scene for absolute input safety)
     this.createMenuButtons();
 
-    // 6. Footer Text
+    // 7. Footer Text
     this.createFooter();
 
-    // 7. Entry Fade In
+    // 8. Entry Fade In
     this.cameras.main.fadeIn(800, 0, 0, 0);
+
+    // 9. Start ambient music
+    AmbientMusic.start();
 
     // Re-layout on screen resize
     this.scale.on('resize', this.handleResize, this);
@@ -74,6 +85,24 @@ export class MainMenu extends Scene {
     const crystalRight = AssetManager.spawnCrystal(this, width - 150, height - 320);
     crystalRight.setAlpha(0.4).setScale(0.8);
     this.decorations.push(crystalRight);
+  }
+
+  private createFireParticles(): void {
+    const { width, height } = this.scale;
+    
+    // Create ember particles around the title area
+    const particles = this.add.particles(width / 2, height * 0.24, 'particle_ember', {
+      speed: { min: 10, max: 30 },
+      angle: { min: 250, max: 290 },
+      scale: { start: 0.4, end: 0 },
+      lifespan: 2000,
+      frequency: 100,
+      quantity: 1,
+      alpha: { start: 0.8, end: 0 },
+      tint: 0xff7700,
+    });
+    
+    this.decorations.push(particles);
   }
 
   private createTitleAndPlayer(): void {
@@ -125,9 +154,12 @@ export class MainMenu extends Scene {
 
     const options = [
       { text: '▶ Start Game', action: () => this.startGame() },
+      { text: '▶ Continue', action: () => this.continueGame() },
+      { text: '🗺 Level Select', action: () => this.openLevelSelect() },
       { text: '📖 How To Play', action: () => this.showHowToPlay() },
       { text: '⚙ Settings', action: () => this.showSettings() },
       { text: '🏆 Credits', action: () => this.showCredits() },
+      { text: '✖ Exit', action: () => this.exitGame() },
     ];
 
     const startY = height * 0.52;
@@ -208,10 +240,33 @@ export class MainMenu extends Scene {
   }
 
   private startGame(): void {
+    PushTestScene.levelIndex = 0;
     this.cameras.main.fadeOut(800, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.scene.start('PushTestScene');
     });
+  }
+
+  private continueGame(): void {
+    const maxUnlocked = ProgressionManager.getMaxUnlocked();
+    PushTestScene.levelIndex = maxUnlocked - 1;
+    this.cameras.main.fadeOut(800, 0, 0, 0);
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      this.scene.start('PushTestScene');
+    });
+  }
+
+  private openLevelSelect(): void {
+    this.cameras.main.fadeOut(800, 0, 0, 0);
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      this.scene.start('LevelSelect');
+    });
+  }
+
+  private exitGame(): void {
+    // In an iframe context, we can't actually exit
+    // Show a toast message instead
+    this.showModal('EXIT', ['Cannot exit from within Reddit.', 'Please close the tab manually.']);
   }
 
   private showHowToPlay(): void {
@@ -226,14 +281,226 @@ export class MainMenu extends Scene {
   }
 
   private showSettings(): void {
-    const content = [
-      'MUSIC: [ ON ]',
-      'SFX:   [ ON ]',
-      'FULLSCREEN: [ WINDOWED ]',
-      '',
-      '(Configured for hackathon playtests)',
-    ];
-    this.showModal('SETTINGS', content);
+    this.closeModal();
+
+    const { width, height } = this.scale;
+
+    // Modal background overlay
+    const backdrop = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.65)
+      .setInteractive()
+      .setDepth(2000);
+    
+    // Stone panel card
+    const cardBg = this.add.graphics().setDepth(2001);
+    cardBg.fillStyle(0x11161d, 0.95);
+    cardBg.lineStyle(3, 0xff7700, 1);
+    cardBg.fillRoundedRect(width / 2 - 220, height / 2 - 180, 440, 360, 6);
+    cardBg.strokeRoundedRect(width / 2 - 220, height / 2 - 180, 440, 360, 6);
+
+    const titleText = this.add.text(width / 2, height / 2 - 150, 'SETTINGS', {
+      fontFamily: 'Georgia, serif',
+      fontSize: '20px',
+      color: ORANGE,
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(2002);
+
+    // Music Volume slider
+    const musicVolume = SoundManager.getMusicVolume();
+    const musicSlider = this.createVolumeSlider(
+      width / 2, height / 2 - 100,
+      'MUSIC VOLUME',
+      musicVolume,
+      (value: number) => {
+        SoundManager.setMusicVolume(value);
+        AmbientMusic.updateVolume();
+      }
+    );
+
+    // SFX Volume slider
+    const sfxVolume = SoundManager.getSfxVolume();
+    const sfxSlider = this.createVolumeSlider(
+      width / 2, height / 2 - 40,
+      'SFX VOLUME',
+      sfxVolume,
+      (value: number) => {
+        SoundManager.setSfxVolume(value);
+      }
+    );
+
+    // Fullscreen toggle
+    const isFullscreen = !!document.fullscreenElement;
+    const fullscreenBtn = this.createToggleButton(
+      width / 2, height / 2 + 20,
+      'FULLSCREEN',
+      isFullscreen,
+      () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          document.documentElement.requestFullscreen();
+        }
+        this.showSettings(); // Refresh modal
+      }
+    );
+
+    // Reset Save button
+    const resetBtn = this.createResetButton(
+      width / 2, height / 2 + 80,
+      'RESET SAVE',
+      () => {
+        SoundManager.resetSettings();
+        this.showSettings(); // Refresh modal
+      }
+    );
+
+    // Close button
+    const closeBtnBg = this.add.graphics().setDepth(2001);
+    closeBtnBg.fillStyle(0x1c232d, 1);
+    closeBtnBg.lineStyle(1, 0x3a4553, 1);
+    closeBtnBg.fillRoundedRect(width / 2 - 50, height / 2 + 130, 100, 32, 4);
+    closeBtnBg.strokeRoundedRect(width / 2 - 50, height / 2 + 130, 100, 32, 4);
+
+    const closeBtnLabel = this.add.text(width / 2, height / 2 + 146, 'CLOSE', {
+      fontFamily: 'Arial',
+      fontSize: '13px',
+      color: WHITE,
+      fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(2002);
+
+    const closeHit = this.add.rectangle(width / 2, height / 2 + 146, 100, 32, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(2003);
+
+    closeHit.on('pointerdown', () => this.closeModal());
+    backdrop.on('pointerdown', () => this.closeModal());
+
+    // Escape key closes modal
+    const escKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    escKey?.once('down', () => this.closeModal());
+
+    this.modalObjects.push(backdrop, cardBg, titleText, musicSlider, sfxSlider, fullscreenBtn, resetBtn, closeBtnBg, closeBtnLabel, closeHit);
+  }
+
+  private createToggleButton(x: number, y: number, label: string, isOn: boolean, onClick: () => void): GameObjects.Container {
+    const container = this.add.container(x, y).setDepth(2002);
+
+    const labelText = this.add.text(-80, 0, `${label}:`, {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: WHITE,
+    }).setOrigin(0.5);
+
+    const stateText = this.add.text(40, 0, isOn ? '[ ON ]' : '[ OFF ]', {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: isOn ? '#4ade80' : '#f87171',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    const hitArea = this.add.rectangle(0, 0, 200, 30, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true });
+
+    hitArea.on('pointerover', () => {
+      stateText.setColor(ORANGE_GLOW);
+    });
+
+    hitArea.on('pointerout', () => {
+      stateText.setColor(isOn ? '#4ade80' : '#f87171');
+    });
+
+    hitArea.on('pointerdown', () => {
+      SoundEffects.playClick(this);
+      onClick();
+    });
+
+    container.add([labelText, stateText, hitArea]);
+    return container;
+  }
+
+  private createVolumeSlider(x: number, y: number, label: string, value: number, onChange: (value: number) => void): GameObjects.Container {
+    const container = this.add.container(x, y).setDepth(2002);
+
+    const labelText = this.add.text(-120, 0, `${label}:`, {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: WHITE,
+    }).setOrigin(0.5);
+
+    // Slider track
+    const trackWidth = 160;
+    const trackHeight = 8;
+    const trackBg = this.add.graphics();
+    trackBg.fillStyle(0x3a4553, 1);
+    trackBg.fillRoundedRect(-trackWidth / 2, -trackHeight / 2, trackWidth, trackHeight, 4);
+
+    // Slider fill
+    const fillWidth = trackWidth * value;
+    const trackFill = this.add.graphics();
+    trackFill.fillStyle(0xff7700, 1);
+    trackFill.fillRoundedRect(-trackWidth / 2, -trackHeight / 2, fillWidth, trackHeight, 4);
+
+    // Slider handle
+    const handleX = -trackWidth / 2 + fillWidth;
+    const handle = this.add.circle(handleX, 0, 10, 0xff7700);
+    handle.setStrokeStyle(2, 0xffffff);
+
+    // Value text
+    const valueText = this.add.text(120, 0, `${Math.round(value * 100)}%`, {
+      fontFamily: 'Arial',
+      fontSize: '14px',
+      color: WHITE,
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    // Interactive area for slider
+    const hitArea = this.add.rectangle(0, 0, trackWidth + 40, 30, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true });
+
+    hitArea.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      const localX = pointer.x - x + trackWidth / 2;
+      const newValue = Math.max(0, Math.min(1, localX / trackWidth));
+      onChange(newValue);
+      this.showSettings(); // Refresh modal
+    });
+
+    container.add([labelText, trackBg, trackFill, handle, valueText, hitArea]);
+    return container;
+  }
+
+  private createResetButton(x: number, y: number, label: string, onClick: () => void): GameObjects.Container {
+    const container = this.add.container(x, y).setDepth(2002);
+
+    const btnBg = this.add.graphics();
+    btnBg.fillStyle(0x7f1d1d, 0.8);
+    btnBg.lineStyle(2, 0xef4444, 1);
+    btnBg.fillRoundedRect(-80, -15, 160, 30, 4);
+    btnBg.strokeRoundedRect(-80, -15, 160, 30, 4);
+
+    const labelText = this.add.text(0, 0, label, {
+      fontFamily: 'Arial',
+      fontSize: '13px',
+      color: '#fca5a5',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    const hitArea = this.add.rectangle(0, 0, 160, 30, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true });
+
+    hitArea.on('pointerover', () => {
+      labelText.setColor('#ffffff');
+    });
+
+    hitArea.on('pointerout', () => {
+      labelText.setColor('#fca5a5');
+    });
+
+    hitArea.on('pointerdown', () => {
+      SoundEffects.playClick(this);
+      onClick();
+    });
+
+    container.add([btnBg, labelText, hitArea]);
+    return container;
   }
 
   private showCredits(): void {

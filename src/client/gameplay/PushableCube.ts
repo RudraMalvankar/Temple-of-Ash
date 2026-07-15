@@ -64,7 +64,7 @@ export class PushableCube {
     sprite.body.setAllowGravity(false);
     sprite.body.setSize(BODY, BODY, true);
     sprite.body.setDrag(0, 0);
-    sprite.setDepth(9);
+    sprite.setDepth(8);
     sprite.setTint(0xd9c4a0);
 
     this.createDust();

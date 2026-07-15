@@ -2,6 +2,7 @@ import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import { PushableCube } from './PushableCube';
+import { SoundEffects } from '../core/SoundEffects';
 
 export class Crystal {
   static instances: Crystal[] = [];
@@ -21,7 +22,7 @@ export class Crystal {
     this.sprite = AssetManager.spawnCrystal(scene, x, y);
     this.sprite.setDisplaySize(gridSize, gridSize);
     this.sprite.setOrigin(0.5, 0.5);
-    this.sprite.setDepth(3);
+    this.sprite.setDepth(7);
 
     Crystal.instances.push(this);
   }
@@ -38,6 +39,9 @@ export class Crystal {
     if (this.activated === active) return;
     this.activated = active;
     AssetManager.playCrystal(this.sprite, this.activated);
+    if (active) {
+      SoundEffects.playChime(this.sprite.scene);
+    }
   }
 
   update(playerCol: number, playerRow: number, cubes: PushableCube[], laserHit: boolean): void {

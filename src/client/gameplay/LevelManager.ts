@@ -13,6 +13,7 @@ import { Crystal } from './Crystal';
 import { AssetManager } from '../assets/AssetManager';
 import { LEVELS } from '../levels/levelDefinitions';
 import { SoundEffects } from '../core/SoundEffects';
+import { ProgressionManager } from '../core/ProgressionManager';
 
 export type LoadedLevel = {
   grid: Grid;
@@ -328,6 +329,11 @@ export class LevelManager {
       LevelManager.debugText?.setVisible(LevelManager.debugVisible);
     });
 
+    const escKey = scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    escKey?.on('down', () => {
+      scene.scene.launch('PauseMenu');
+    });
+
     // Initialize state
     LevelManager.checkPuzzleProgress();
 
@@ -429,6 +435,9 @@ export class LevelManager {
     console.log('[LevelManager] Player died! Respawing at latest checkpoint...');
     const scene = LevelManager.scene;
 
+    // Track death in progression
+    ProgressionManager.addDeath();
+
     SoundEffects.playDeath(scene);
     scene.cameras.main.shake(300, 0.02);
     scene.cameras.main.fadeOut(400, 0, 0, 0);
@@ -476,6 +485,10 @@ export class LevelManager {
 
     console.log('[LevelManager] Level completed! Loading next...');
 
+    // Mark current level as completed and unlock next level
+    ProgressionManager.completeLevel(LevelManager.currentLevelIndex + 1);
+    ProgressionManager.unlockLevel(LevelManager.currentLevelIndex + 2);
+
     scene.cameras.main.fadeOut(800, 0, 0, 0);
     scene.cameras.main.once('camerafadeoutcomplete', () => {
       const nextIndex = LevelManager.currentLevelIndex + 1;
@@ -483,7 +496,7 @@ export class LevelManager {
         LevelManager.loadLevel(scene, nextIndex);
         scene.cameras.main.fadeIn(800, 0, 0, 0); // Fade back in!
       } else {
-        scene.scene.start('MainMenu');
+        scene.scene.start('VictoryScreen');
       }
     });
   }

@@ -1,18 +1,21 @@
 import type { Scene } from 'phaser';
+import { SoundManager } from './SoundManager';
 
-type SoundManagerWithContext = {
+type SoundContext = {
   context: AudioContext;
+  volume: number;
 };
 
-function hasContext(sound: unknown): sound is SoundManagerWithContext {
+function hasContext(sound: unknown): sound is { context: AudioContext } {
   return !!sound && typeof sound === 'object' && 'context' in sound;
 }
 
 export class SoundEffects {
   static playClick(scene: Scene): void {
-    const ctx = SoundEffects.getContext(scene);
-    if (!ctx) return;
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
 
+    const { context: ctx, volume } = soundCtx;
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -21,7 +24,7 @@ export class SoundEffects {
     osc.frequency.setValueAtTime(600, now);
     osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
 
-    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.setValueAtTime(0.2 * volume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
     osc.connect(gain);
@@ -32,9 +35,10 @@ export class SoundEffects {
   }
 
   static playPush(scene: Scene): void {
-    const ctx = SoundEffects.getContext(scene);
-    if (!ctx) return;
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
 
+    const { context: ctx, volume } = soundCtx;
     const now = ctx.currentTime;
     const duration = 0.2;
     const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
@@ -54,7 +58,7 @@ export class SoundEffects {
     filter.Q.value = 1.0;
 
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.setValueAtTime(0.25 * volume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     noise.connect(filter);
@@ -66,9 +70,10 @@ export class SoundEffects {
   }
 
   static playDoor(scene: Scene): void {
-    const ctx = SoundEffects.getContext(scene);
-    if (!ctx) return;
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
 
+    const { context: ctx, volume } = soundCtx;
     const now = ctx.currentTime;
     const duration = 0.4;
     const osc = ctx.createOscillator();
@@ -78,7 +83,7 @@ export class SoundEffects {
     osc.frequency.setValueAtTime(120, now);
     osc.frequency.linearRampToValueAtTime(60, now + duration);
 
-    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.setValueAtTime(0.15 * volume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     const filter = ctx.createBiquadFilter();
@@ -94,9 +99,10 @@ export class SoundEffects {
   }
 
   static playCheckpoint(scene: Scene): void {
-    const ctx = SoundEffects.getContext(scene);
-    if (!ctx) return;
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
 
+    const { context: ctx, volume } = soundCtx;
     const now = ctx.currentTime;
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
@@ -110,7 +116,7 @@ export class SoundEffects {
     osc2.type = 'sine';
     osc2.frequency.setValueAtTime(220, now);
 
-    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.setValueAtTime(0.2 * volume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
     osc1.connect(gain);
@@ -124,9 +130,10 @@ export class SoundEffects {
   }
 
   static playDeath(scene: Scene): void {
-    const ctx = SoundEffects.getContext(scene);
-    if (!ctx) return;
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
 
+    const { context: ctx, volume } = soundCtx;
     const now = ctx.currentTime;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -135,7 +142,7 @@ export class SoundEffects {
     osc.frequency.setValueAtTime(150, now);
     osc.frequency.exponentialRampToValueAtTime(40, now + 0.4);
 
-    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.setValueAtTime(0.3 * volume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
     osc.connect(gain);
@@ -146,9 +153,10 @@ export class SoundEffects {
   }
 
   static playWin(scene: Scene): void {
-    const ctx = SoundEffects.getContext(scene);
-    if (!ctx) return;
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
 
+    const { context: ctx, volume } = soundCtx;
     const now = ctx.currentTime;
     const notes = [261.63, 329.63, 392.00, 523.25]; // C E G C
     notes.forEach((freq, idx) => {
@@ -158,7 +166,7 @@ export class SoundEffects {
       osc.type = 'triangle';
       osc.frequency.value = freq;
 
-      gain.gain.setValueAtTime(0.12, now + idx * 0.08);
+      gain.gain.setValueAtTime(0.12 * volume, now + idx * 0.08);
       gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
 
       osc.connect(gain);
@@ -169,7 +177,63 @@ export class SoundEffects {
     });
   }
 
-  private static getContext(scene: Scene): AudioContext | null {
+  static playChime(scene: Scene): void {
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
+
+    const { context: ctx, volume } = soundCtx;
+    const now = ctx.currentTime;
+    const notes = [880, 1108.73, 1318.51]; // A5, C#6, E6
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0.15 * volume, now + idx * 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.1 + 0.4);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + idx * 0.1);
+      osc.stop(now + idx * 0.1 + 0.4);
+    });
+  }
+
+  static playRumble(scene: Scene): void {
+    const soundCtx = SoundEffects.getSoundContext(scene);
+    if (!soundCtx) return;
+
+    const { context: ctx, volume } = soundCtx;
+    const now = ctx.currentTime;
+    const duration = 0.3;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, now);
+    osc.frequency.linearRampToValueAtTime(40, now + duration);
+
+    gain.gain.setValueAtTime(0.2 * volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 200;
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+
+  private static getSoundContext(scene: Scene): SoundContext | null {
+    if (SoundManager.isMuted()) return null;
+    
     const sound = scene.sound;
     if (!hasContext(sound)) return null;
 
@@ -177,6 +241,6 @@ export class SoundEffects {
     if (ctx.state === 'suspended') {
       void ctx.resume();
     }
-    return ctx;
+    return { context: ctx, volume: SoundManager.getSfxVolume() };
   }
 }

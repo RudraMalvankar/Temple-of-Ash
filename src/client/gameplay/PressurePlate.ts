@@ -1,6 +1,7 @@
 import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
+import { SoundEffects } from '../core/SoundEffects';
 
 export class PressurePlate {
   static instances: PressurePlate[] = [];
@@ -28,7 +29,7 @@ export class PressurePlate {
     this.sprite = AssetManager.spawnPressurePlate(scene, x, y);
     this.sprite.setDisplaySize(gridSize, gridSize);
     this.sprite.setOrigin(0.5, 0.5);
-    this.sprite.setDepth(2); // Sit above floor but below player/cubes
+    this.sprite.setDepth(3);
 
     PressurePlate.instances.push(this);
   }
@@ -59,6 +60,7 @@ export class PressurePlate {
       this.pressed = isOccupied;
       if (this.pressed) {
         AssetManager.playPressurePlate(this.sprite, 'activated');
+        SoundEffects.playClick(this.sprite.scene);
       } else {
         AssetManager.playPressurePlate(this.sprite, 'idle');
       }

@@ -11,6 +11,8 @@ const GRID = 64;
  * Main game playtest scene driven by the modular LevelManager.
  */
 export class PushTestScene extends Scene {
+  static levelIndex: number = 0;
+
   private player: Player | undefined;
   private currentLevelIndex = 0;
 
@@ -18,10 +20,15 @@ export class PushTestScene extends Scene {
     super('PushTestScene');
   }
 
+  static resetStatics(): void {
+    PushTestScene.levelIndex = 0;
+  }
+
   create(): void {
     EventBus.clear();
     LevelManager.shutdown();
 
+    this.currentLevelIndex = PushTestScene.levelIndex;
     const levelDef = LEVELS[this.currentLevelIndex];
     if (!levelDef) {
       console.warn(`Level index ${this.currentLevelIndex} not found!`);
@@ -38,6 +45,12 @@ export class PushTestScene extends Scene {
     // Initialize and load level structure via modular LevelManager
     const loaded = LevelManager.loadLevel(this, this.currentLevelIndex, GRID);
     this.player = loaded.player;
+
+    // Launch GameHUD
+    this.scene.launch('GameHUD', { levelIndex: this.currentLevelIndex });
+
+    // Show level transition
+    this.showLevelTransition();
 
     EventBus.onCubeMoved((payload) => {
       console.log(`[cubeMoved] ${payload.cubeId} → (${payload.toCol},${payload.toRow})`);
@@ -61,6 +74,8 @@ export class PushTestScene extends Scene {
     LevelManager.shutdown();
     this.player = undefined;
     EventBus.clear();
+    PushTestScene.resetStatics();
+    this.scene.stop('GameHUD');
   };
 
   private onResize = (): void => {
@@ -79,4 +94,46 @@ export class PushTestScene extends Scene {
       this.cameras.main.centerOn(worldW / 2, worldH / 2);
     }
   };
+
+  private showLevelTransition(): void {
+    const { width, height } = this.scale;
+    const levelDef = LEVELS[this.currentLevelIndex];
+    if (!levelDef) return;
+
+    // Create overlay
+    const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8)
+      .setDepth(1000);
+
+    // Level text
+    const levelText = this.add.text(width / 2, height / 2 - 20, `Level ${this.currentLevelIndex + 1}`, {
+      fontFamily: 'Georgia, serif',
+      fontSize: '48px',
+      color: '#ff7700',
+      fontStyle: 'bold',
+      stroke: '#000000',
+      strokeThickness: 8,
+    }).setOrigin(0.5).setDepth(1001);
+
+    // Level name
+    const nameText = this.add.text(width / 2, height / 2 + 40, levelDef.name, {
+      fontFamily: 'Arial',
+      fontSize: '24px',
+      color: '#f2f5fa',
+      stroke: '#000000',
+      strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(1001);
+
+    // Fade in
+    this.cameras.main.fadeIn(500, 0, 0, 0);
+
+    // Hold for 2 seconds, then fade out
+    this.time.delayedCall(2000, () => {
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        overlay.destroy();
+        levelText.destroy();
+        nameText.destroy();
+      });
+    });
+  }
 }

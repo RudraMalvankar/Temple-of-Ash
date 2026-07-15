@@ -1,11 +1,11 @@
 import { Boot } from './scenes/Boot';
-import { GameOver } from './scenes/GameOver';
-import { Game as MainGame } from './scenes/Game';
 import { MainMenu } from './scenes/MainMenu';
 import { AssetValidation } from './scenes/AssetValidation';
 import { PlayerTestScene } from './scenes/PlayerTestScene';
 import { PushTestScene } from './scenes/PushTestScene';
 import { Preloader } from './scenes/Preloader';
+import { LevelSelect } from './scenes/LevelSelect';
+import { VictoryScreen } from './scenes/VictoryScreen';
 import * as Phaser from 'phaser';
 import { AUTO, Game } from 'phaser';
 
@@ -30,11 +30,11 @@ const config: Phaser.Types.Core.GameConfig = {
     Boot,
     Preloader,
     AssetValidation,
-    PushTestScene,
-    PlayerTestScene,
     MainMenu,
-    MainGame,
-    GameOver,
+    LevelSelect,
+    PushTestScene,
+    VictoryScreen,
+    PlayerTestScene,
   ],
 };
 

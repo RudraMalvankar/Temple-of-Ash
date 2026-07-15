@@ -283,8 +283,8 @@ export class AssetManager {
     return AssetManager.playAnimation(sprite, 'torch_idle');
   }
 
-  static playPressurePlate(sprite: GameObjects.Sprite, state: string): GameObjects.Sprite {
-    return AssetManager.playAnimation(sprite, `pressure_plate_${state}`);
+  static playPressurePlate(sprite: GameObjects.Sprite, _state: string): GameObjects.Sprite {
+    return sprite;
   }
 
   static playCrystal(sprite: GameObjects.Sprite, activated = false): GameObjects.Sprite {
@@ -350,7 +350,7 @@ export class AssetManager {
   }
 
   static spawnCube(scene: Scene, x: number, y: number): GameObjects.Sprite {
-    const sprite = scene.add.sprite(x, y, 'player_cube');
+    const sprite = scene.add.sprite(x, y, 'prop_decor_03');
     return sprite;
   }
 
@@ -373,8 +373,7 @@ export class AssetManager {
   }
 
   static spawnPressurePlate(scene: Scene, x: number, y: number): GameObjects.Sprite {
-    const sprite = scene.add.sprite(x, y, 'pressure_plate_idle_01');
-    AssetManager.playAnimation(sprite, 'pressure_plate_idle');
+    const sprite = scene.add.sprite(x, y, 'prop_decor_40');
     return sprite;
   }
 
@@ -429,13 +428,12 @@ export class AssetManager {
   }
 
   static spawnFloorTile(scene: Scene, x: number, y: number): GameObjects.Sprite {
-    const idx = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+    const idx = String(Math.floor(Math.random() * 6) + 1).padStart(2, '0');
     return scene.add.sprite(x, y, `floor_tile_${idx}`);
   }
 
   static spawnWallTile(scene: Scene, x: number, y: number): GameObjects.Sprite {
-    const idx = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
-    return scene.add.sprite(x, y, `wall_tile_${idx}`);
+    return scene.add.sprite(x, y, 'floor_tile_11');
   }
 
   static spawnWallDecoration(scene: Scene, x: number, y: number): GameObjects.Sprite {

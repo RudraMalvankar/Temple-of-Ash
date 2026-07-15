@@ -1,6 +1,7 @@
 import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
+import { SoundEffects } from '../core/SoundEffects';
 
 export class Bridge {
   static instances: Bridge[] = [];
@@ -22,7 +23,7 @@ export class Bridge {
     this.sprite = AssetManager.spawnBridge(scene, x, y);
     this.sprite.setDisplaySize(gridSize, gridSize);
     this.sprite.setOrigin(0.5, 0.5);
-    this.sprite.setDepth(2);
+    this.sprite.setDepth(4);
 
     // Starts lowered (blocked)
     this.lower();
@@ -43,8 +44,10 @@ export class Bridge {
 
     if (this.active) {
       this.raise();
+      SoundEffects.playRumble(this.sprite.scene);
     } else {
       this.lower();
+      SoundEffects.playRumble(this.sprite.scene);
     }
   }
 
