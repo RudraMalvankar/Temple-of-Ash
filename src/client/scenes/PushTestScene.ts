@@ -123,16 +123,17 @@ export class PushTestScene extends Scene {
       strokeThickness: 4,
     }).setOrigin(0.5).setDepth(1001);
 
-    // Fade in
-    this.cameras.main.fadeIn(500, 0, 0, 0);
-
-    // Hold for 2 seconds, then fade out
+    // Hold for 2 seconds, then fade out text elements
     this.time.delayedCall(2000, () => {
-      this.cameras.main.fadeOut(500, 0, 0, 0);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
-        overlay.destroy();
-        levelText.destroy();
-        nameText.destroy();
+      this.tweens.add({
+        targets: [overlay, levelText, nameText],
+        alpha: 0,
+        duration: 500,
+        onComplete: () => {
+          overlay.destroy();
+          levelText.destroy();
+          nameText.destroy();
+        }
       });
     });
   }
