@@ -130,7 +130,7 @@ export class LevelManager {
           case 'W': {
             const wall = AssetManager.createTile(x, y, 12, scene);
             wall.setDisplaySize(cellSize, cellSize);
-            wall.setDepth(2);
+            wall.setDepth(1);
             LevelManager.wallsGroup.add(wall);
             grid.markBlocked(c, r, true);
             break;
@@ -231,7 +231,7 @@ export class LevelManager {
             const torch = AssetManager.createTorch(x, y, scene);
             torch.setDisplaySize(cellSize, cellSize);
             torch.setOrigin(0.5, 0.5);
-            torch.setDepth(3);
+            torch.setDepth(2);
             break;
           }
           default:
