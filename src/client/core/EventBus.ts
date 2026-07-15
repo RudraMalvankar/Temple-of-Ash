@@ -1,4 +1,4 @@
-type Handler<T> = (payload: T) => void;
+export type Handler<P = unknown> = (payload: P) => void;
 
 export type PlayerMovePayload = {
   x: number;
@@ -14,9 +14,7 @@ export type PlayerStopPayload = {
 };
 
 export type PlayerImpactPayload = {
-  speed: number;
-  normalX: number;
-  normalY: number;
+  impact: string;
 };
 
 export type PlayerStatePayload = {
@@ -35,15 +33,10 @@ export type CubeMovedPayload = {
   fromRow: number;
   toCol: number;
   toRow: number;
-  /** Center of the tile the cube now occupies — pressure plates can listen for this. */
   x: number;
   y: number;
 };
 
-/**
- * Typed pub/sub for gameplay systems.
- * Explicit per-event APIs keep TypeScript sound without assertions.
- */
 export class EventBus {
   private static readonly moveHandlers = new Set<Handler<PlayerMovePayload>>();
   private static readonly stopHandlers = new Set<Handler<PlayerStopPayload>>();
@@ -51,6 +44,7 @@ export class EventBus {
   private static readonly stateHandlers = new Set<Handler<PlayerStatePayload>>();
   private static readonly gridHandlers = new Set<Handler<PlayerGridCellPayload>>();
   private static readonly cubeMovedHandlers = new Set<Handler<CubeMovedPayload>>();
+  private static readonly playerDiedHandlers = new Set<Handler<void>>();
 
   static onMove(handler: Handler<PlayerMovePayload>): () => void {
     EventBus.moveHandlers.add(handler);
@@ -94,6 +88,13 @@ export class EventBus {
     };
   }
 
+  static onPlayerDied(handler: Handler<void>): () => void {
+    EventBus.playerDiedHandlers.add(handler);
+    return () => {
+      EventBus.playerDiedHandlers.delete(handler);
+    };
+  }
+
   static emitMove(payload: PlayerMovePayload): void {
     for (const handler of [...EventBus.moveHandlers]) {
       handler(payload);
@@ -130,6 +131,12 @@ export class EventBus {
     }
   }
 
+  static emitPlayerDied(): void {
+    for (const handler of [...EventBus.playerDiedHandlers]) {
+      handler();
+    }
+  }
+
   static clear(): void {
     EventBus.moveHandlers.clear();
     EventBus.stopHandlers.clear();
@@ -137,18 +144,6 @@ export class EventBus {
     EventBus.stateHandlers.clear();
     EventBus.gridHandlers.clear();
     EventBus.cubeMovedHandlers.clear();
+    EventBus.playerDiedHandlers.clear();
   }
 }
-
-/** Channel names for docs / debugging — prefer EventBus.emit* / on* methods. */
-export const PlayerEvents = {
-  Move: 'player:move',
-  Stop: 'player:stop',
-  Impact: 'player:impact',
-  StateChanged: 'player:state',
-  GridCellChanged: 'player:grid-cell',
-} as const;
-
-export const CubeEvents = {
-  Moved: 'cubeMoved',
-} as const;

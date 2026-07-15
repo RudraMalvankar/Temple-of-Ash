@@ -2,6 +2,7 @@ import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import { SoundEffects } from '../core/SoundEffects';
+import { LevelManager } from './LevelManager';
 
 export class Portal {
   readonly sprite: Phaser.GameObjects.Sprite;
@@ -90,7 +91,9 @@ export class Portal {
 
   update(playerCol: number, playerRow: number): void {
     if (this.active && playerCol === this.col && playerRow === this.row) {
-      this.onPlayerEnter();
+      if (!LevelManager.isTransitioning) {
+        this.onPlayerEnter();
+      }
     }
   }
 

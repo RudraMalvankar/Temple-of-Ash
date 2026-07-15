@@ -1,7 +1,7 @@
 import * as Phaser from 'phaser';
 import type { Scene, GameObjects, Physics } from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
-import { EventBus, CubeEvents } from '../core/EventBus';
+import { EventBus } from '../core/EventBus';
 import { SoundEffects } from '../core/SoundEffects';
 
 type ArcadeSprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
@@ -257,8 +257,6 @@ export class PushableCube {
           x: toX,
           y: toY,
         });
-        // Name retained for gameplay listeners that key off the string "cubeMoved".
-        void CubeEvents.Moved;
       },
     });
   }

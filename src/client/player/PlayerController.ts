@@ -121,6 +121,8 @@ export class PlayerController {
   private startSlide(toCol: number, toRow: number, dirX: number, dirY: number): void {
     this.moving = true;
     this.transitionState(PlayerStateId.Moving);
+    this.state.gridCol = toCol;
+    this.state.gridRow = toRow;
 
     const toX = toCol * this.config.gridSize + this.config.gridSize / 2;
     const toY = toRow * this.config.gridSize + this.config.gridSize / 2;

@@ -1,8 +1,8 @@
 import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
-import { PushableCube } from './PushableCube';
 import { SoundEffects } from '../core/SoundEffects';
+import type { PushableCube } from './PushableCube';
 
 export class Crystal {
   static instances: Crystal[] = [];
@@ -11,10 +11,12 @@ export class Crystal {
   readonly col: number;
   readonly row: number;
   private activated = false;
+  private onStateChange: (() => void) | undefined;
 
-  constructor(scene: Scene, col: number, row: number, gridSize: number) {
+  constructor(scene: Scene, col: number, row: number, gridSize: number, onStateChange?: () => void) {
     this.col = col;
     this.row = row;
+    this.onStateChange = onStateChange;
 
     const x = col * gridSize + gridSize / 2;
     const y = row * gridSize + gridSize / 2;
@@ -40,7 +42,10 @@ export class Crystal {
     this.activated = active;
     AssetManager.playCrystal(this.sprite, this.activated);
     if (active) {
-      SoundEffects.playChime(this.sprite.scene);
+      SoundEffects.playClick(this.sprite.scene);
+      if (this.onStateChange) {
+        this.onStateChange();
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import { SoundEffects } from '../core/SoundEffects';
+import { PushableCube } from './PushableCube';
 
 export class Door {
   static instances: Door[] = [];
@@ -63,6 +64,18 @@ export class Door {
 
   private close(): void {
     this.open = false;
+
+    // Check if any cube occupies the door cell before blocking it
+    const isOccupied = PushableCube.instances.some(
+      cube => cube.getGridCell().col === this.col && cube.getGridCell().row === this.row
+    );
+
+    if (isOccupied) {
+      // Remain open if a cube is in the doorway
+      this.open = true;
+      return;
+    }
+
     AssetManager.playDoor(this.sprite, 'closed');
     this.blockedCells.add(`${this.col},${this.row}`);
     this.sprite.alpha = 1.0;

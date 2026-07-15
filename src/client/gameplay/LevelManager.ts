@@ -14,6 +14,7 @@ import { AssetManager } from '../assets/AssetManager';
 import { LEVELS } from '../levels/levelDefinitions';
 import { SoundEffects } from '../core/SoundEffects';
 import { ProgressionManager } from '../core/ProgressionManager';
+import { EventBus } from '../core/EventBus';
 
 export type LoadedLevel = {
   grid: Grid;
@@ -35,7 +36,7 @@ export class LevelManager {
   private static wallsGroup: Phaser.Physics.Arcade.StaticGroup | null = null;
   private static debugText: Phaser.GameObjects.Text | null = null;
   private static debugVisible = false;
-  private static isTransitioning = false;
+  public static isTransitioning = false;
 
   private static spawnCol = 0;
   private static spawnRow = 0;
@@ -222,7 +223,9 @@ export class LevelManager {
           case 'Y': {
             crystalCount++;
             console.log(`Spawn Crystal at (${x},${y})`);
-            const crystal = new Crystal(scene, c, r, cellSize);
+            const crystal = new Crystal(scene, c, r, cellSize, () => {
+              LevelManager.checkPuzzleProgress();
+            });
             crystals.push(crystal);
             LevelManager.verifyObject(crystal.sprite, "Crystal");
             break;
@@ -437,6 +440,7 @@ export class LevelManager {
 
     // Track death in progression
     ProgressionManager.addDeath();
+    EventBus.emitPlayerDied();
 
     SoundEffects.playDeath(scene);
     scene.cameras.main.shake(300, 0.02);
@@ -461,20 +465,22 @@ export class LevelManager {
 
   private static checkPuzzleProgress(): void {
     if (!LevelManager.activeLevel) return;
-    const { plates, doors, portal, bridges } = LevelManager.activeLevel;
+    const { plates, doors, portal, bridges, crystals } = LevelManager.activeLevel;
 
     const allPressed = plates.length > 0 ? plates.every(p => p.isPressed()) : true;
+    const allCrystals = crystals.length > 0 ? crystals.every(c => c.isActivated()) : true;
+    const puzzleSolved = allPressed && allCrystals;
 
     for (const door of doors) {
-      door.setOpen(allPressed);
+      door.setOpen(puzzleSolved);
     }
 
     for (const bridge of bridges) {
-      bridge.setActive(allPressed);
+      bridge.setActive(puzzleSolved);
     }
 
     if (portal) {
-      portal.setActive(allPressed);
+      portal.setActive(puzzleSolved);
     }
   }
 

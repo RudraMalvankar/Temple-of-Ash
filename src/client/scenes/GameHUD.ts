@@ -61,7 +61,7 @@ export class GameHUD extends Scene {
     });
 
     // Listen for death events to update counter
-    this.unsubscribeDeath = EventBus.onStop(() => {
+    this.unsubscribeDeath = EventBus.onPlayerDied(() => {
       // Death is tracked in ProgressionManager, so we can refresh the display
       const currentDeaths = ProgressionManager.getDeaths();
       this.deathsText.setText(`Deaths: ${currentDeaths}`);
