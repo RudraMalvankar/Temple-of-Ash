@@ -10,19 +10,21 @@ export class Portal {
   private active = false;
   private onPlayerEnter: () => void;
   private pulseTween: Phaser.Tweens.Tween | null = null;
+  private gridSize: number;
 
   constructor(scene: Scene, col: number, row: number, gridSize: number, onPlayerEnter: () => void) {
     this.col = col;
     this.row = row;
     this.onPlayerEnter = onPlayerEnter;
+    this.gridSize = gridSize;
 
     const x = col * gridSize + gridSize / 2;
     const y = row * gridSize + gridSize / 2;
 
     this.sprite = AssetManager.spawnPortal(scene, x, y);
-    this.sprite.setDisplaySize(gridSize * 2, gridSize * 2);
+    this.sprite.setDisplaySize(gridSize, gridSize); // exactly one tile
     this.sprite.setOrigin(0.5, 0.5);
-    this.sprite.setDepth(6);
+    this.sprite.setDepth(6); // rendering depth 6
     
     // Portal starts completely invisible
     this.sprite.setVisible(false);
@@ -52,12 +54,15 @@ export class Portal {
         ease: 'Cubic.Out'
       });
 
-      // Pulse scaling animation
-      const startSize = 64 * 2; // grid width 64 * 2 tiles
+      // Pulse scaling animation relative to its current scale
+      this.sprite.setDisplaySize(this.gridSize, this.gridSize);
+      const initScaleX = this.sprite.scaleX;
+      const initScaleY = this.sprite.scaleY;
+
       this.pulseTween = scene.tweens.add({
         targets: this.sprite,
-        scaleX: startSize * 1.08,
-        scaleY: startSize * 1.08,
+        scaleX: initScaleX * 1.1,
+        scaleY: initScaleY * 1.1,
         yoyo: true,
         repeat: -1,
         duration: 1200,

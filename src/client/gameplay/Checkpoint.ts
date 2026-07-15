@@ -18,12 +18,12 @@ export class Checkpoint {
     this.onActivate = onActivate;
 
     const x = col * gridSize + gridSize / 2;
-    const y = (row + 1) * gridSize; // bottom of the grid cell
+    const y = row * gridSize + gridSize / 2; // center of the grid cell
 
     this.sprite = AssetManager.spawnCheckpoint(scene, x, y);
     this.sprite.setDisplaySize(gridSize, gridSize);
-    this.sprite.setOrigin(0.5, 1.0); // bottom anchor
-    this.sprite.setDepth(3);
+    this.sprite.setOrigin(0.5, 0.5); // center anchor
+    this.sprite.setDepth(5);
 
     // Soft glow pulsating animation
     scene.tweens.add({

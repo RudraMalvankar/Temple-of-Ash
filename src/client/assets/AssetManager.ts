@@ -367,7 +367,7 @@ export class AssetManager {
   }
 
   static spawnCheckpoint(scene: Scene, x: number, y: number): GameObjects.Sprite {
-    const sprite = scene.add.sprite(x, y, 'checkpoint_inactive_01');
+    const sprite = scene.add.sprite(x, y, 'checkpoint_idle_01');
     AssetManager.playAnimation(sprite, 'checkpoint_inactive');
     return sprite;
   }

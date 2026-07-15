@@ -332,7 +332,7 @@ export class LevelManager {
       color: '#f0d2b0',
       backgroundColor: '#000000aa',
       padding: { x: 10, y: 6 },
-    }).setScrollFactor(0).setDepth(3000);
+    }).setScrollFactor(0).setDepth(100);
     LevelManager.debugText.setVisible(LevelManager.debugVisible);
 
     return LevelManager.activeLevel;

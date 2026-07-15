@@ -52,10 +52,10 @@ export class PlayerInput {
     this.cursors = keyboard?.createCursorKeys();
     this.wasd = keyboard
       ? {
-          up: keyboard.addKey('W'),
-          down: keyboard.addKey('S'),
-          left: keyboard.addKey('A'),
-          right: keyboard.addKey('D'),
+          up: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+          down: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
+          left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+          right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
         }
       : undefined;
 

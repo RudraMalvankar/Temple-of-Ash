@@ -115,7 +115,7 @@ export class PlayerController {
     this.sprite.body.setMaxVelocity(this.config.moveSpeed, this.config.moveSpeed);
     this.sprite.body.setDrag(0, 0);
     this.sprite.body.setAllowGravity(false);
-    this.sprite.setDepth(10);
+    this.sprite.setDepth(9);
   }
 
   private startSlide(toCol: number, toRow: number, dirX: number, dirY: number): void {
