@@ -59,6 +59,22 @@ export class LevelManager {
   }
 
   static loadLevel(scene: Scene, levelIndex: number, cellSize = 64, useCheckpoint = false): LoadedLevel {
+    if (LevelManager.activeLevel) {
+      const { player, cubes, plates, doors, portal, checkpoints, lasers, bridges, crystals } = LevelManager.activeLevel;
+      player.destroy();
+      for (const cube of cubes) cube.destroy();
+      for (const plate of plates) plate.sprite.destroy();
+      for (const door of doors) door.destroy();
+      if (portal) portal.destroy();
+      for (const cp of checkpoints) cp.destroy();
+      for (const laser of lasers) laser.destroy();
+      for (const bridge of bridges) bridge.destroy();
+      for (const crystal of crystals) crystal.destroy();
+    }
+    if (LevelManager.wallsGroup) {
+      LevelManager.wallsGroup.clear(true, true);
+    }
+
     LevelManager.scene = scene;
     LevelManager.currentLevelIndex = levelIndex;
     LevelManager.isTransitioning = false;
