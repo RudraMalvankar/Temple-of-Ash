@@ -12,6 +12,7 @@ import { Bridge } from './Bridge';
 import { Crystal } from './Crystal';
 import { AssetManager } from '../assets/AssetManager';
 import { LEVELS } from '../levels/levelDefinitions';
+import { SoundEffects } from '../core/SoundEffects';
 
 export type LoadedLevel = {
   grid: Grid;
@@ -32,7 +33,7 @@ export class LevelManager {
   private static activeLevel: LoadedLevel | null = null;
   private static wallsGroup: Phaser.Physics.Arcade.StaticGroup | null = null;
   private static debugText: Phaser.GameObjects.Text | null = null;
-  private static debugVisible = true;
+  private static debugVisible = false;
   private static isTransitioning = false;
 
   private static spawnCol = 0;
@@ -418,6 +419,7 @@ export class LevelManager {
     console.log('[LevelManager] Player died! Respawing at latest checkpoint...');
     const scene = LevelManager.scene;
 
+    SoundEffects.playDeath(scene);
     scene.cameras.main.shake(300, 0.02);
     scene.cameras.main.fadeOut(400, 0, 0, 0);
 

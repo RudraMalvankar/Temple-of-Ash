@@ -1,6 +1,7 @@
 import type { Scene } from 'phaser';
 import * as Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
+import { SoundEffects } from '../core/SoundEffects';
 
 export class Checkpoint {
   static instances: Checkpoint[] = [];
@@ -20,9 +21,19 @@ export class Checkpoint {
     const y = (row + 1) * gridSize; // bottom of the grid cell
 
     this.sprite = AssetManager.spawnCheckpoint(scene, x, y);
-    this.sprite.setDisplaySize(gridSize, gridSize * 1.5);
+    this.sprite.setDisplaySize(gridSize, gridSize);
     this.sprite.setOrigin(0.5, 1.0); // bottom anchor
     this.sprite.setDepth(3);
+
+    // Soft glow pulsating animation
+    scene.tweens.add({
+      targets: this.sprite,
+      alpha: { start: 0.65, end: 1.0 },
+      yoyo: true,
+      repeat: -1,
+      duration: 1000,
+      ease: 'Sine.InOut'
+    });
 
     Checkpoint.instances.push(this);
   }
@@ -46,6 +57,7 @@ export class Checkpoint {
 
       this.active = true;
       AssetManager.playCheckpoint(this.sprite, true);
+      SoundEffects.playCheckpoint(this.sprite.scene);
       this.onActivate(this.col, this.row);
     }
   }

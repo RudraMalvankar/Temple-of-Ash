@@ -1,5 +1,6 @@
 import { Scene, GameObjects } from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
+import { SoundEffects } from '../core/SoundEffects';
 
 const ORANGE = '#ff7700';
 const ORANGE_GLOW = '#ffb347';
@@ -174,8 +175,8 @@ export class MainMenu extends Scene {
         label.setColor(WHITE);
       });
 
-      // Press effects
       hitArea.on('pointerdown', () => {
+        SoundEffects.playClick(this);
         this.tweens.add({
           targets: [label],
           scaleX: 0.95,

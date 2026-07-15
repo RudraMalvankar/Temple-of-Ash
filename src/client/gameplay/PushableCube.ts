@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import type { Scene, GameObjects, Physics } from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import { EventBus, CubeEvents } from '../core/EventBus';
+import { SoundEffects } from '../core/SoundEffects';
 
 type ArcadeSprite = Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 
@@ -229,7 +230,7 @@ export class PushableCube {
     this.sprite.body.enable = false;
 
     this.burstDust(dirX, dirY);
-    playStoneMoveSound(this.scene);
+    SoundEffects.playPush(this.scene);
 
     this.moveTween = this.scene.tweens.add({
       targets: this.sprite,
@@ -294,65 +295,4 @@ export class PushableCube {
   }
 }
 
-type SoundManagerWithContext = {
-  context: AudioContext;
-};
 
-function hasContext(sound: unknown): sound is SoundManagerWithContext {
-  return !!sound && typeof sound === 'object' && 'context' in sound;
-}
-
-/** Tiny procedural scrape — no audio file required. */
-function playStoneMoveSound(scene: Scene): void {
-  const sound = scene.sound;
-  if (!hasContext(sound)) {
-    return;
-  }
-
-  const ctx = sound.context;
-  if (ctx.state === 'suspended') {
-    void ctx.resume();
-  }
-
-  const now = ctx.currentTime;
-  const duration = 0.16;
-
-  const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
-  const channel = noiseBuffer.getChannelData(0);
-
-  for (let i = 0; i < channel.length; i += 1) {
-    const t = i / ctx.sampleRate;
-    channel[i] = (Math.random() * 2 - 1) * Math.exp(-16 * t);
-  }
-
-  const noise = ctx.createBufferSource();
-  noise.buffer = noiseBuffer;
-
-  const filter = ctx.createBiquadFilter();
-  filter.type = 'bandpass';
-  filter.frequency.value = 420;
-  filter.Q.value = 0.7;
-
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(0.4, now + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-  const rumble = ctx.createOscillator();
-  rumble.type = 'triangle';
-  rumble.frequency.value = 85;
-  const rumbleGain = ctx.createGain();
-  rumbleGain.gain.setValueAtTime(0.12, now);
-  rumbleGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-  noise.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-  rumble.connect(rumbleGain);
-  rumbleGain.connect(ctx.destination);
-
-  noise.start(now);
-  rumble.start(now);
-  noise.stop(now + duration);
-  rumble.stop(now + duration);
-}
