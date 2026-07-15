@@ -38,14 +38,16 @@ export const LEVELS: LevelDefinition[] = [
   {
     id: 2,
     name: "2. Crate Pushing",
-    gridWidth: 9,
-    gridHeight: 5,
+    gridWidth: 11,
+    gridHeight: 7,
     layout: [
-      "W W W W W W W W W",
-      "W P . . C . . X W",
-      "W W W W . W W W W",
-      "W . . . . . . . W",
-      "W W W W W W W W W"
+      "W W W W W W W W W W W",
+      "W P . . W . . . . . W",
+      "W W W . W . W W . . W",
+      "W . . . C . . W . . W",
+      "W . W W W W . W . . W",
+      "W . . . . . . W . X W",
+      "W W W W W W W W W W W"
     ]
   },
   {

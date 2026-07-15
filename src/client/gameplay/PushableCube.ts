@@ -78,12 +78,7 @@ export class PushableCube {
     const x = col * gridSize + gridSize / 2;
     const y = row * gridSize + gridSize / 2;
 
-    const sheet = AssetManager.getSheet('cube');
-    if (!sheet) {
-      throw new Error('PushableCube: cube sheet missing from AssetManager');
-    }
-
-    const sprite = scene.physics.add.sprite(x, y, sheet.textureKey);
+    const sprite = scene.physics.add.sprite(x, y, 'prop_decor_03');
     sprite.setDisplaySize(gridSize, gridSize);
     sprite.setOrigin(0.5, 0.5);
 
