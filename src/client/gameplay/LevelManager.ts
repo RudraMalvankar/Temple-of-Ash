@@ -132,6 +132,7 @@ export class LevelManager {
             const wall = AssetManager.createTile(x, y, 12, scene);
             wall.setDisplaySize(cellSize, cellSize);
             wall.setDepth(1);
+            wall.setTint(0x221c1a);
             LevelManager.wallsGroup.add(wall);
             grid.markBlocked(c, r, true);
             break;
@@ -508,6 +509,22 @@ export class LevelManager {
   }
 
   static shutdown(): void {
+    if (LevelManager.activeLevel) {
+      const { player, cubes, plates, doors, portal, checkpoints, lasers, bridges, crystals } = LevelManager.activeLevel;
+      player.destroy();
+      for (const cube of cubes) cube.destroy();
+      for (const plate of plates) plate.sprite.destroy();
+      for (const door of doors) door.destroy();
+      if (portal) portal.destroy();
+      for (const cp of checkpoints) cp.destroy();
+      for (const laser of lasers) laser.destroy();
+      for (const bridge of bridges) bridge.destroy();
+      for (const crystal of crystals) crystal.destroy();
+    }
+    if (LevelManager.wallsGroup) {
+      LevelManager.wallsGroup.clear(true, true);
+    }
+
     PushableCube.clearRegistry();
     PressurePlate.clearRegistry();
     Door.clearRegistry();
