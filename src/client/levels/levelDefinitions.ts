@@ -25,41 +25,51 @@ export const LEVELS: LevelDefinition[] = [
   {
     id: 1,
     name: "1. Dungeon Entry",
-    gridWidth: 8,
-    gridHeight: 7,
+    gridWidth: 10,
+    gridHeight: 9,
     layout: [
-      "W W W W W W W W",
-      "W . . . . . . W",
-      "W . T . . T . W",
-      "W . P . . X . W",
-      "W . . . . . . W",
-      "W . T . . T . W",
-      "W W W W W W W W"
+      "W W W W W W W W W W",
+      "W P . . W . . . . W",
+      "W . T . W . . T . W",
+      "W . . . W . . . . W",
+      "W . . . . . . . . W",
+      "W . . . W . . . . W",
+      "W . T . W . . T . W",
+      "W . . . W . . X . W",
+      "W W W W W W W W W W"
     ]
   },
   {
     id: 2,
     name: "2. Crate Pushing",
-    gridWidth: 9,
-    gridHeight: 7,
+    gridWidth: 10,
+    gridHeight: 9,
     layout: [
-      "W W W W W W W W W",
-      "W . . . . . . . W",
-      "W . P . C . X . W",
-      "W . . . . . . . W",
-      "W W W W W W W W W"
+      "W W W W W W W W W W",
+      "W P . . W . . . . W",
+      "W . . . W . . . . W",
+      "W . . C . . . . . W",
+      "W W W W W . W W W W",
+      "W . . . W . W . . W",
+      "W . T . . . . . . W",
+      "W . . . W . W . X W",
+      "W W W W W W W W W W"
     ]
   },
   {
     id: 3,
     name: "3. Pressure Plates",
     gridWidth: 10,
-    gridHeight: 7,
+    gridHeight: 9,
     layout: [
       "W W W W W W W W W W",
-      "W . . . . . . . . W",
-      "W . P . C . O . X W",
-      "W . . . . . . . . W",
+      "W P . . W . . . . W",
+      "W . . . W . . . . W",
+      "W . . C . . O . . W",
+      "W W W W W . W W W W",
+      "W . . . W . W . . W",
+      "W . T . . . . . . W",
+      "W . . . W . W . X W",
       "W W W W W W W W W W"
     ]
   },
@@ -67,12 +77,16 @@ export const LEVELS: LevelDefinition[] = [
     id: 4,
     name: "4. Doors & Gates",
     gridWidth: 11,
-    gridHeight: 7,
+    gridHeight: 9,
     layout: [
       "W W W W W W W W W W W",
-      "W . . . . . . . . . W",
-      "W . P . C . O D . X W",
-      "W . . . . . . . . . W",
+      "W P . . W . . . . . W",
+      "W . . . W . . . . . W",
+      "W . . C . . O . . . W",
+      "W W W W W . W W D W W",
+      "W . . . W . W . . . W",
+      "W . T . . . . . . . W",
+      "W . . . W . W . . X W",
       "W W W W W W W W W W W"
     ]
   },
@@ -83,13 +97,13 @@ export const LEVELS: LevelDefinition[] = [
     gridHeight: 9,
     layout: [
       "W W W W W W W W W W W W",
-      "W . . . . . . . . . . W",
-      "W . P . . . . . . . . W",
+      "W P . . . W . . . . . W",
+      "W . . C . W . . O . . W",
       "W W W W L L L L W W W W",
       "W . . W L L L L W . . W",
-      "W . C . . . . . . O . W",
       "W . . W L L L L W . . W",
-      "W . . . . X . . . . . W",
+      "W . . W L L L L W . . W",
+      "W . . . . . X . . . . W",
       "W W W W W W W W W W W W"
     ]
   },
@@ -100,11 +114,12 @@ export const LEVELS: LevelDefinition[] = [
     gridHeight: 9,
     layout: [
       "W W W W W W W W W W W W",
-      "W . . . . . . . . . . W",
-      "W . P . C . . . . X . W",
-      "W W W W H H H H W W W W",
-      "W . . . . . . . . . . W",
-      "W . . . . O . . . . . W",
+      "W P . . W . . . . . . W",
+      "W . . C W . . . . . . W",
+      "W . W . W . . . . . . W",
+      "W . W . W V . . . . . W",
+      "W . W . W . . . . X . W",
+      "W . W . W . . . . . . W",
       "W W W W W W W W W W W W"
     ]
   },
@@ -115,11 +130,11 @@ export const LEVELS: LevelDefinition[] = [
     gridHeight: 9,
     layout: [
       "W W W W W W W W W W W W",
-      "W . . . . . . . . . . W",
-      "W . P . . C . . . Y . W",
+      "W P . . . . W . . . . W",
+      "W . . C . . W . . O . W",
       "W W W W L L L L W W W W",
       "W . . W L L L L W . . W",
-      "W . O B . . . . B O . W",
+      "W . . B . . . . B . . W",
       "W . . W L L L L W . . W",
       "W . . . . X . . . . . W",
       "W W W W W W W W W W W W"
