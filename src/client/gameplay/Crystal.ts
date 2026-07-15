@@ -19,6 +19,8 @@ export class Crystal {
     const y = row * gridSize + gridSize / 2;
 
     this.sprite = AssetManager.spawnCrystal(scene, x, y);
+    this.sprite.setDisplaySize(gridSize, gridSize);
+    this.sprite.setOrigin(0.5, 0.5);
     this.sprite.setDepth(3);
 
     Crystal.instances.push(this);

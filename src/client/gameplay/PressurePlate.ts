@@ -26,6 +26,8 @@ export class PressurePlate {
     const y = row * gridSize + gridSize / 2;
 
     this.sprite = AssetManager.spawnPressurePlate(scene, x, y);
+    this.sprite.setDisplaySize(gridSize, gridSize);
+    this.sprite.setOrigin(0.5, 0.5);
     this.sprite.setDepth(2); // Sit above floor but below player/cubes
 
     PressurePlate.instances.push(this);

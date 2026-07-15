@@ -20,6 +20,8 @@ export class Bridge {
     const y = row * gridSize + gridSize / 2;
 
     this.sprite = AssetManager.spawnBridge(scene, x, y);
+    this.sprite.setDisplaySize(gridSize, gridSize);
+    this.sprite.setOrigin(0.5, 0.5);
     this.sprite.setDepth(2);
 
     // Starts lowered (blocked)

@@ -225,7 +225,9 @@ export class LevelManager {
             break;
           }
           case 'T': {
-            AssetManager.createTorch(x, y, scene);
+            const torch = AssetManager.createTorch(x, y, scene);
+            torch.setDisplaySize(cellSize, cellSize);
+            torch.setOrigin(0.5, 0.5);
             break;
           }
           default:

@@ -68,7 +68,7 @@ export class Player {
 
     const sprite = scene.physics.add.sprite(options.x, options.y, sheet.textureKey);
 
-    sprite.setScale(config.displayScale);
+    sprite.setDisplaySize(config.gridSize, config.gridSize);
     sprite.setOrigin(0.5, 0.5);
 
     return new Player(scene, sprite, config, options.blockedCells);

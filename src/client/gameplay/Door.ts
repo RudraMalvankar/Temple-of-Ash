@@ -17,9 +17,11 @@ export class Door {
     this.blockedCells = blockedCells;
 
     const x = col * gridSize + gridSize / 2;
-    const y = row * gridSize + gridSize / 2;
+    const y = (row + 1) * gridSize; // bottom of the grid cell
 
     this.sprite = AssetManager.spawnDoor(scene, x, y);
+    this.sprite.setDisplaySize(gridSize, gridSize * 2);
+    this.sprite.setOrigin(0.5, 1.0); // bottom anchor
     this.sprite.setDepth(5);
 
     // Start closed and block coordinates

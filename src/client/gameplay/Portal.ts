@@ -18,6 +18,8 @@ export class Portal {
     const y = row * gridSize + gridSize / 2;
 
     this.sprite = AssetManager.spawnPortal(scene, x, y);
+    this.sprite.setDisplaySize(gridSize * 2, gridSize * 2);
+    this.sprite.setOrigin(0.5, 0.5);
     this.sprite.setDepth(6);
     this.sprite.setAlpha(0.5); // Semi-transparent when inactive
   }

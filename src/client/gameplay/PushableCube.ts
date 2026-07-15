@@ -17,7 +17,6 @@ export type PushableCubeOptions = {
 const DEFAULT_GRID = 64;
 const MOVE_MS = 160;
 const BODY = 40;
-const SCALE = 0.26;
 
 let nextId = 1;
 
@@ -84,7 +83,7 @@ export class PushableCube {
     }
 
     const sprite = scene.physics.add.sprite(x, y, sheet.textureKey);
-    sprite.setScale(SCALE);
+    sprite.setDisplaySize(gridSize, gridSize);
     sprite.setOrigin(0.5, 0.5);
 
     return new PushableCube(scene, sprite, {
