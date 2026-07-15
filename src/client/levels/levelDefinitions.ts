@@ -65,59 +65,55 @@ export const LEVELS: LevelDefinition[] = [
     id: 4,
     name: "4. Doors & Gates",
     gridWidth: 11,
-    gridHeight: 6,
+    gridHeight: 5,
     layout: [
       "W W W W W W W W W W W",
-      "W P . . C . . O . . W",
-      "W W W W . W W W W D W",
-      "W . . . . . . . . . W",
-      "W . . . . . . . . X W",
+      "W P . . W . . . . . W",
+      "W . C . D . . X . . W",
+      "W . O . W . . . . . W",
       "W W W W W W W W W W W"
     ]
   },
   {
     id: 5,
     name: "5. Lava Pools",
-    gridWidth: 12,
-    gridHeight: 7,
+    gridWidth: 11,
+    gridHeight: 6,
     layout: [
-      "W W W W W W W W W W W W",
-      "W P . . . W . . . . . W",
-      "W . . C . . . . . O . W",
-      "W W W . L L L L . W W W",
-      "W . . . L L L L . . . W",
-      "W . . . . X . . . . . W",
-      "W W W W W W W W W W W W"
+      "W W W W W W W W W W W",
+      "W P . . . W . . . . W",
+      "W . C . . D . . X . W",
+      "W . L . . W . . . . W",
+      "W . O . . W . . . . W",
+      "W W W W W W W W W W W"
     ]
   },
   {
     id: 6,
     name: "6. Laser Beams",
-    gridWidth: 12,
-    gridHeight: 7,
+    gridWidth: 11,
+    gridHeight: 6,
     layout: [
-      "W W W W W W W W W W W W",
-      "W P . . . . . . . . . W",
-      "W . . C . . . . . . . W",
-      "W W W W W V W W W W W W",
-      "W . . . . . . . . . . W",
-      "W . . . . X . . . . . W",
-      "W W W W W W W W W W W W"
+      "W W W W W W W W W W W",
+      "W P . . . W . . . . W",
+      "W . C . . D . . X . W",
+      "W . V . . W . . . . W",
+      "W . O . . W . . . . W",
+      "W W W W W W W W W W W"
     ]
   },
   {
     id: 7,
     name: "7. Bridge Puzzles",
-    gridWidth: 12,
-    gridHeight: 7,
+    gridWidth: 11,
+    gridHeight: 6,
     layout: [
-      "W W W W W W W W W W W W",
-      "W P . . . . . . . . . W",
-      "W . . C . . . . . O . W",
-      "W W W W W B W W W W W W",
-      "W . . . . . . . . . . W",
-      "W . . . . X . . . . . W",
-      "W W W W W W W W W W W W"
+      "W W W W W W W W W W W",
+      "W P . . . W . . . . W",
+      "W . C . . B . . X . W",
+      "W . L . . W . . . . W",
+      "W . O . . W . . . . W",
+      "W W W W W W W W W W W"
     ]
   },
   {
@@ -127,12 +123,12 @@ export const LEVELS: LevelDefinition[] = [
     gridHeight: 8,
     layout: [
       "W W W W W W W W W W W W W W",
-      "W P . . . O . . . . . K . W",
-      "W . . C . . . . . . C . . W",
-      "W W W W W W D D W W W W W W",
-      "W . . . . . . . . . . . . W",
-      "W . . . . . Y . . . . O . W",
-      "W . . . . . X . . . . . . W",
+      "W P . . . W . . . . . K . W",
+      "W . C . . D . . Y . . C . W",
+      "W . L . . W . . . . . O . W",
+      "W . O . . W . . . . . . . W",
+      "W W W W W W B B W W W W W W",
+      "W . . . . . . . . . . X . W",
       "W W W W W W W W W W W W W W"
     ]
   }
