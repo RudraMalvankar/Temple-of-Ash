@@ -5,16 +5,11 @@ import type { PlayerConfig } from './PlayerConfig';
 export type InputVector = {
   x: number;
   y: number;
-  /** True when device input exceeds deadzone. */
   active: boolean;
 };
 
 type CursorKeys = Phaser.Types.Input.Keyboard.CursorKeys;
 
-/**
- * Desktop (WASD / arrows) + mobile virtual joystick.
- * Returns a normalized vector every frame; never talks to physics directly.
- */
 export class PlayerInput {
   private readonly cursors: CursorKeys | undefined;
   private readonly wasd:
@@ -39,6 +34,11 @@ export class PlayerInput {
   private readonly radius: number;
   private destroyed = false;
 
+  // Bulletproof raw window keyboard listener fallback
+  private activeKeys = new Set<string>();
+  private onKeyDownBind: (e: KeyboardEvent) => void;
+  private onKeyUpBind: (e: KeyboardEvent) => void;
+
   constructor(
     private readonly scene: Scene,
     config: PlayerConfig['joystick']
@@ -58,6 +58,7 @@ export class PlayerInput {
           right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
         }
       : undefined;
+
     if (keyboard) {
       keyboard.addCapture([
         Phaser.Input.Keyboard.KeyCodes.W,
@@ -66,6 +67,17 @@ export class PlayerInput {
         Phaser.Input.Keyboard.KeyCodes.D
       ]);
     }
+
+    // Set up raw event listeners as fallback
+    this.onKeyDownBind = (e: KeyboardEvent) => {
+      this.activeKeys.add(e.key.toLowerCase());
+    };
+    this.onKeyUpBind = (e: KeyboardEvent) => {
+      this.activeKeys.delete(e.key.toLowerCase());
+    };
+
+    window.addEventListener('keydown', this.onKeyDownBind);
+    window.addEventListener('keyup', this.onKeyUpBind);
 
     this.joystickOriginX = this.marginLeft;
     this.joystickOriginY = scene.scale.height - this.marginBottom;
@@ -91,18 +103,34 @@ export class PlayerInput {
     let x = 0;
     let y = 0;
 
-    if (this.cursors?.left.isDown || this.wasd?.left.isDown) {
-      x -= 1;
-    }
-    if (this.cursors?.right.isDown || this.wasd?.right.isDown) {
-      x += 1;
-    }
-    if (this.cursors?.up.isDown || this.wasd?.up.isDown) {
-      y -= 1;
-    }
-    if (this.cursors?.down.isDown || this.wasd?.down.isDown) {
-      y += 1;
-    }
+    const isLeft =
+      this.cursors?.left.isDown ||
+      this.wasd?.left.isDown ||
+      this.activeKeys.has('a') ||
+      this.activeKeys.has('arrowleft');
+
+    const isRight =
+      this.cursors?.right.isDown ||
+      this.wasd?.right.isDown ||
+      this.activeKeys.has('d') ||
+      this.activeKeys.has('arrowright');
+
+    const isUp =
+      this.cursors?.up.isDown ||
+      this.wasd?.up.isDown ||
+      this.activeKeys.has('w') ||
+      this.activeKeys.has('arrowup');
+
+    const isDown =
+      this.cursors?.down.isDown ||
+      this.wasd?.down.isDown ||
+      this.activeKeys.has('s') ||
+      this.activeKeys.has('arrowdown');
+
+    if (isLeft) x -= 1;
+    if (isRight) x += 1;
+    if (isUp) y -= 1;
+    if (isDown) y += 1;
 
     if (this.joystickPointerId !== undefined) {
       x = this.stickX;
@@ -131,6 +159,10 @@ export class PlayerInput {
       return;
     }
     this.destroyed = true;
+
+    window.removeEventListener('keydown', this.onKeyDownBind);
+    window.removeEventListener('keyup', this.onKeyUpBind);
+
     this.scene.scale.off('resize', this.onResize, this);
     this.scene.input.off('pointerdown', this.onPointerDown, this);
     this.scene.input.off('pointermove', this.onPointerMove, this);

@@ -89,11 +89,6 @@ export class Portal {
   }
 
   update(playerCol: number, playerRow: number): void {
-    // Slow rotation
-    if (this.active) {
-      this.sprite.angle += 0.5;
-    }
-
     if (this.active && playerCol === this.col && playerRow === this.row) {
       this.onPlayerEnter();
     }

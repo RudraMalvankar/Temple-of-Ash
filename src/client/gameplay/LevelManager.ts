@@ -273,6 +273,15 @@ export class LevelManager {
       crystals,
     };
 
+    // Center camera on newly loaded level def
+    const worldW = levelDef.gridWidth * cellSize;
+    const worldH = levelDef.gridHeight * cellSize;
+    const zoomX = scene.scale.width / (worldW + 64);
+    const zoomY = scene.scale.height / (worldH + 64);
+    const zoom = Math.min(zoomX, zoomY, 1.5);
+    scene.cameras.main.setZoom(zoom);
+    scene.cameras.main.centerOn(worldW / 2, worldH / 2);
+
     // Physics setup
     scene.physics.add.collider(player.sprite, LevelManager.wallsGroup);
 
@@ -472,6 +481,7 @@ export class LevelManager {
       const nextIndex = LevelManager.currentLevelIndex + 1;
       if (nextIndex < LEVELS.length) {
         LevelManager.loadLevel(scene, nextIndex);
+        scene.cameras.main.fadeIn(800, 0, 0, 0); // Fade back in!
       } else {
         scene.scene.start('MainMenu');
       }
